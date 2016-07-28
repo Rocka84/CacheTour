@@ -1,0 +1,39 @@
+{
+	"name": "UserscriptBoiler",
+	"version": "0.1.0",
+	"description": "Userscript Boilerplate using grunt and the package.json file",
+	"main": "dist/userscript_boiler.user.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Rocka84 <f.dillmeier@gmail.com>",
+	"userscript": {
+		"namespace": "de.rocka84.userscript_boiler",
+		"include": [
+			"http*://www.example.com/*"
+		],
+		"exclude": [
+		],
+		"grant": [
+			"GM_getValue",
+			"GM_setValue",
+			"GM_deleteValue",
+			"GM_log",
+			"GM_addStyle",
+			"GM_xmlhttpRequest",
+			"GM_getResourceText",
+			"GM_getResourceURL"
+		],
+		"update_url": "https://github.com/Rocka84/UserscriptBoiler/raw/master/dist/userscript_boiler.version.js",
+		"download_url": "https://github.com/Rocka84/UserscriptBoiler/raw/master/dist/userscript_boiler.user.js",
+		"icon": "https://github.com/Rocka84/UserscriptBoiler/raw/master/icon.png",
+		"run_at": "document-end"
+	},
+	"license": "ISC",
+	"devDependencies": {
+		"grunt": "^1.0.1",
+		"grunt-contrib-concat": "^1.0.1",
+		"grunt-contrib-jshint": "^1.0.0",
+		"grunt-contrib-watch": "^1.0.0"
+	}
+}
