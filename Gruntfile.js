@@ -15,7 +15,7 @@ module.exports = function (grunt) {
 				banner: grunt.file.read("templates/header.js.tpl"),
 			},
 			dist: {
-				src: ["source/main.js"],
+				src: ["source/main.js", "source/modules/*.js", "source/initialize.js"],
 				dest: "dist/<%= pkg.name %>.user.js"
 			}
 		},
@@ -24,8 +24,8 @@ module.exports = function (grunt) {
 				nospawn: true
 			},
 			src: {
-				files: ["source/*.js"],
-				tasks: ["jshint:src"]
+				files: ["source/*.js", "source/styles.css", "source/modules/*.js"],
+				tasks: ["jshint:src", "dist"]
 			},
 			grunt: {
 				files: ["Gruntfile.js"],
@@ -34,15 +34,33 @@ module.exports = function (grunt) {
 		}
 	});
 
-	function createFromTemplateFile(target_file, template_file) {
-		grunt.file.write(target_file, grunt.template.process(grunt.file.read(template_file)));
-	}
-	grunt.task.registerTask("create_version_file",function() {
-		createFromTemplateFile("dist/" + grunt.config.data.pkg.name + ".version.js", "templates/version.js.tpl");
+	function createFromTemplateFile(target_file, template_file, data) {
+		grunt.file.write(target_file, grunt.template.process(grunt.file.read(template_file), {data: data||grunt.config.data}));
 		return true;
+	}
+
+	function clone(object) {
+		return JSON.parse(JSON.stringify(object));
+	}
+
+	grunt.task.registerTask("create_version_file",function() {
+		return createFromTemplateFile("dist/" + grunt.config.data.pkg.name + ".version.js", "templates/version.js.tpl");
 	});
 
-	grunt.task.registerTask("dist", ["create_version_file", "jshint:src", "concat:dist"]);
+	grunt.task.registerTask("create_dev_header_file",function() {
+		var pkg = clone(grunt.config.data.pkg);
+		pkg.userscript.require = pkg.userscript.require||[];
+		pkg.userscript.require.push("file://" + process.cwd() + "/dist/" + grunt.config.data.pkg.name + ".user.js");
+		return createFromTemplateFile("dist/" + grunt.config.data.pkg.name + ".dev_header.user.js", "templates/header.js.tpl", {pkg: pkg});
+	});
+
+	grunt.task.registerTask("create_js_from_css",function() {
+		console.log("Don't look at me, I'm ugly!");
+		var css = grunt.file.read("source/styles.css").split("\n").join("\\\n");
+		return createFromTemplateFile("source/modules/001.styles.js", "templates/styles.js.tpl", {css: css});
+	});
+
+	grunt.task.registerTask("dist", ["create_js_from_css", "concat:dist", "create_version_file"]);
 
 	grunt.loadNpmTasks("grunt-contrib-concat");
 	grunt.loadNpmTasks("grunt-contrib-jshint");

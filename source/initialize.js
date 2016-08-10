@@ -1,0 +1,1 @@
+CacheTour.initialize();

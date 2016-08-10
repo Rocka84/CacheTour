@@ -1,6 +1,7 @@
-Userscript Boilerplate
-======================
+CachePlanner
+============
 
-Simple Boilerplate for Userscrtipts, using grunt to lint and concat files,
-and to create headers from information in package.json.
+Collect Geocaches from geocaching.com and download them as single GPX file.
+
+Inspired by GCtour.
 

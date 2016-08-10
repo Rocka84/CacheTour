@@ -1,0 +1,48 @@
+#cachetour_gui {
+	position: fixed;
+	right: 0;
+	top: 80px;
+	width:24px;
+	height:24px;
+	border-style: solid;
+	border-width: 2px 0 2px 2px;
+	border-color: #eee;
+	border-radius: 5px 0 0 5px;
+	background: white;
+	padding: 6px 10px;
+	z-index:1000;
+	overflow: hidden;
+}
+#cachetour_gui:hover, #cachetour_gui.cachetour_pinned {
+	width: 260px;
+	height: 85%;
+}
+
+#cachetour_header {
+	font-weight:bold;
+	font-size:large;
+}
+#cachetour_header span {
+	visibility:hidden;
+	display:inline-block;
+	margin-left:4px;
+}
+#cachetour_header i {
+	color: #444;
+	font-size: x-large;
+}
+#cachetour_gui:hover #cachetour_header span {
+	visibility:visible;
+}
+
+#cachetour_tour_wrapper {
+	border-radius:2px;
+}
+#cachetour_tour_wrapper:empty {
+    text-align: center;
+    font-style: italic;
+}
+#cachetour_tour_wrapper:empty:before {
+    content: "- No entries -";
+}
+

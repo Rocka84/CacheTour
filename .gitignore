@@ -1,2 +1,4 @@
 node_modules/*
 *.swp
+dist/*.dev_header.*
+source/modules/001.styles.js
