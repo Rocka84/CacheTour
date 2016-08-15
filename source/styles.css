@@ -14,7 +14,7 @@
 	overflow: hidden;
 }
 #cachetour_gui:hover, #cachetour_gui.cachetour_pinned {
-	width: 260px;
+	width: 280px;
 	height: 85%;
 }
 
@@ -31,7 +31,7 @@
 	color: #444;
 	font-size: x-large;
 }
-#cachetour_gui:hover #cachetour_header span {
+#cachetour_gui.cachetour_pinned #cachetour_header span, #cachetour_gui:hover #cachetour_header span {
 	visibility:visible;
 }
 
@@ -44,5 +44,125 @@
 }
 #cachetour_tour_wrapper:empty:before {
     content: "- No entries -";
+}
+
+#cachetour_pin {
+	position: absolute;
+    right: 5px;
+    top: 4px;
+    cursor: pointer;
+    visibility:hidden;
+}
+
+#cachetour_gui #cachetour_pin .fa-ban {
+	display: none;
+	color: gray;
+}
+
+#cachetour_gui.cachetour_pinned #cachetour_pin, #cachetour_gui:hover #cachetour_pin {
+	visibility:visible;
+}
+
+#cachetour_gui.cachetour_pinned #cachetour_pin .fa-ban {
+	display:block;
+}
+
+.cachetour_clear {
+	clear:both;
+}
+
+.cachetour_tour {
+	counter-reset: tour;
+}
+
+.cachetour_tour_header {
+	font-size: larger;
+	border-bottom: 1px solid black;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.cachetour_cache {
+	border: 1px dashed #DCDCDC;
+	border-radius: 6px;
+	margin-top: 6px;
+	padding: 3px 6px 3px 36px;
+	position:relative;
+}
+.cachetour_cache_name {
+	overflow: hidden;
+}
+.cachetour_cache_code {
+	font-family: monospace;
+	display: inline-block;
+    width:25%;
+}
+.cachetour_cache .cachetour_cache_delete {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    color: gray;
+    background-color: white;
+    padding: 3px;
+    cursor: pointer;
+    display: none;
+}
+.cachetour_cache:hover .cachetour_cache_delete {
+	display: block;
+}
+.cachetour_cache::before {
+    counter-increment: tour;
+    content: counters(tour, ".") ".";
+    position: absolute;
+    left: 6px;
+    font-size: x-large;
+    color: gray;
+    overflow: hidden;
+    top: -4px;
+}
+.cachetour_cache_difficulty, .cachetour_cache_terrain, .cachetour_cache_size {
+    display: inline-block;
+    position: relative;
+    width: calc(25% - .7em);
+    padding-left:.2em;
+    margin-left:.5em;
+}
+
+.cachetour_cache_difficulty::before, .cachetour_cache_terrain::before, .cachetour_cache_size::before {
+	font-style: italic;
+	font-size: smaller;
+	position: absolute;
+	left: -1.2em;
+	top: 0.2em;
+}
+.cachetour_cache:hover .cachetour_cache_difficulty::before {
+	content: "D: ";
+}
+.cachetour_cache:hover .cachetour_cache_terrain::before {
+	content: "T: ";
+}
+.cachetour_cache:hover .cachetour_cache_size::before {
+	content: "S: ";
+}
+
+.cachetour_cache_order {
+	position: absolute;
+	left: 4px;
+	bottom: 2px;
+	display: none;
+    color: gray;
+}
+.cachetour_cache_order > * {
+	cursor: pointer;
+}
+.cachetour_cache:hover .cachetour_cache_order {
+	display: block;
+}
+.cachetour_tour_header + .cachetour_cache .cachetour_cache_up {
+	visibility: hidden;
+}
+.cachetour_cache:last-of-type .cachetour_cache_down {
+	visibility: hidden;
 }
 

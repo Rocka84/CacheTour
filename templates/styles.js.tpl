@@ -1,11 +1,17 @@
 /* jshint multistr: true */
 (function(){
 	"use strict";
+	
+	var StylesJS = new CacheTour.Module({name: "main styles"});
+	StylesJS.shouldRun = function() {
+		return true;
+	};
+	StylesJS.run = function() {};
+	window.CacheTour.registerModule(StylesJS);
 
-	window.CacheTour.registerModule({
-		name: "main styles",
-		run: function(){
-			window.CacheTour.addStyle('<%= css %>');
-		}
-	});
+
+	StylesJS.init = function(){
+		CacheTour.addStyle('<%= css %>');
+	};
 })();
+
