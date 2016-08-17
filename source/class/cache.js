@@ -98,7 +98,7 @@
 	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
 			$.get(this.getLink(), function(result) {
-				(new CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				(new CacheTour.CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
 				resolve();
 			}.bind(this)).fail(reject);
 		}.bind(this));

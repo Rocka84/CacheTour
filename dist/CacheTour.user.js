@@ -307,7 +307,7 @@
 	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
 			$.get(this.getLink(), function(result) {
-				(new CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				(new CacheTour.CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
 				resolve();
 			}.bind(this)).fail(reject);
 		}.bind(this));
@@ -916,94 +916,6 @@
 			}
 		})
 	);
-})();
-
-(function(){
-	"use strict";
-
-	//@todo move templates somewhere else - 
-	var tpl_gpx =
-			'<?xml version="1.0" encoding="utf-8"?>\n' +
-			'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
-				'<name><% name %></name>\n'+
-				'<desc>this is an individual cache generated from geocaching.com</desc>\n'+
-				'<author>CacheTour</author>\n'+
-				'<url>http://www.geocaching.com</url>\n'+
-				'<urlname>geocaching - high tech treasure hunting</urlname>\n'+
-				// '<time>'+ xsddatetime(new date()) + '</time>\n'+
-				'<keywords>cache, geocache</keywords>\n'+
-				'<bounds minlat="<% minlat %>" minlon="<% minlon %>" maxlat="<% maxlat %>" maxlon="<% maxlon %>" />\n'+
-				'<% geocaches %>\n'+
-				'<% waypoints %>\n'+
-			'</gpx>',
-
-	tpl_cache =
-			'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
-				'<time><% time %></time>\n'+
-				'<name><% gcid %></name>\n'+
-				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+ //'<url>http://www.geocaching.com/seek/cache_details.aspx?wp=<% gcid %></url>\n'+
-				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
-				'<urlname><% cachename %></urlname>\n'+
-				'<sym><% cachesym %></sym>\n'+
-				'<type>geocache|<% type %></type>\n'+
-				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
-					'<groundspeak:name><% cachename %></groundspeak:name>\n'+
-					'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
-					'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
-					'<groundspeak:type><% type %></groundspeak:type>\n'+
-					'<groundspeak:container><% container %></groundspeak:container>\n'+
-					'<groundspeak:attributes>\n<% attributes %>    </groundspeak:attributes>\n'+
-					'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
-					'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
-					'<groundspeak:country><% country %></groundspeak:country>\n'+
-					'<groundspeak:state><% state %></groundspeak:state>\n'+
-					'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
-					'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
-					'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
-					'<groundspeak:logs>\n<% logs %>    </groundspeak:logs>\n'+
-				'</groundspeak:cache>\n'+
-			'</wpt>',
-
-	tpl_log =
-			'<groundspeak:log id="<% logid %>">\n'+
-				'<groundspeak:date><% time %></groundspeak:date>\n'+
-				'<groundspeak:type><% logtype %></groundspeak:type>\n'+
-				'<groundspeak:finder><% cachername %></groundspeak:finder>\n'+
-				'<groundspeak:text encoded="false"><% logtext %></groundspeak:text>\n'+
-			'</groundspeak:log>\n';
-
-	function useTemplate(template, data) {
-		var out = template;
-		for (var key in data) {
-			if (data.hasOwnProperty(key)) {
-				out = out.replace(new RegExp('<% ' + key + ' %>','g'), data[key]);
-			}
-		}
-		return out.replace(/<%.+?%>/,'');
-	}
-
-	CacheTour.registerModule(new CacheTour.Module({
-		name:"Cache downloader",
-		requirements: { url: /.+\/geocache\/.*#to_gpx/ },
-		run: function() {
-			console.log('Create GPX!');
-			var logs = "", // @todo: create logs
-				coord_matches = $('#uxLatLon').text().match(/N (.+) E (.+)/),
-				gpx = useTemplate(tpl_gpx, {
-					gc_code: $('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
-					lat: Geo.parseDMS(coord_matches[1]),
-					lon: Geo.parseDMS(coord_matches[2]),
-					name: $('#ctl00_ContentBody_CacheName').first().text(),
-					size: $('span.minorCacheDetails').first().html().match(/\((.+)\)/)[1],
-					difficulty: $('#ctl00_ContentBody_uxLegendScale').first().html().match(/stars([\d_]+)\./)[1].replace('_','.'),
-					terrain: $('#ctl00_ContentBody_Localize12').first().html().match(/stars([\d_]+)\./)[1].replace('_','.'),
-					logs: logs
-				});
-			$(document.head).empty();
-			$(document.body).text(gpx);
-			// console.log(gpx);
-		}
-	}));
 })();
 
 CacheTour.initialize();
