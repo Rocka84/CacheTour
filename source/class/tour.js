@@ -1,6 +1,20 @@
 (function(){
 	"use strict";
 
+	var template_gpx =
+	'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
+		'<name><% name %></name>\n' +
+		'<desc>this is an individual cache generated from geocaching.com</desc>\n' +
+		'<author>CacheTour</author>\n' +
+		'<url>http://www.geocaching.com</url>\n' +
+		'<urlname>geocaching - high tech treasure hunting</urlname>\n' +
+		// '<time>' + xsddatetime(new date()) + '</time>\n' +
+		'<keywords>cache, geocache</keywords>\n' +
+		'<bounds minlat="<% minlat %>" minlon="<% minlon %>" maxlat="<% maxlat %>" maxlon="<% maxlon %>" />\n' +
+		'<% caches %>\n' +
+		'<% waypoints %>\n' +
+	'</gpx>';
+
 	var Tour = window.CacheTour.Tour = function(name){
 		this.name = name || 'Tour ' + new Date().toISOString();
 		this.caches = [];
@@ -83,6 +97,19 @@
 
 	Tour.prototype.getCaches = function() {
 		return this.caches;
+	};
+
+	Tour.prototype.toGPX = function() {
+		var cache_promises = [];
+		for (var i = 0, c = this.caches.length; i < c; i++) {
+			cache_promises.push(this.caches[i].toGPX());
+		}
+		return Promise.all(cache_promises).then(function(caches) {
+			return CacheTour.useTemplate(template_gpx, {
+				name: this.name,
+				caches: caches.join('')
+			});
+		});
 	};
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">');

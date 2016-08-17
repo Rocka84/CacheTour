@@ -1,8 +1,36 @@
 (function(){
 	"use strict";
 
+	var template_gpx = 
+		'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
+				'<time><% time %></time>\n'+
+				'<name><% gc_code %></name>\n'+
+				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
+				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
+				'<urlname><% name %></urlname>\n'+
+				'<sym><% symbol %></sym>\n'+
+				'<type>geocache|<% type %></type>\n'+
+				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
+						'<groundspeak:name><% cachename %></groundspeak:name>\n'+
+						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
+						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
+						'<groundspeak:type><% type %></groundspeak:type>\n'+
+						'<groundspeak:container><% container %></groundspeak:container>\n'+
+						'<groundspeak:attributes><% attributes %></groundspeak:attributes>\n'+
+						'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
+						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
+						'<groundspeak:country><% country %></groundspeak:country>\n'+
+						'<groundspeak:state><% state %></groundspeak:state>\n'+
+						'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
+						'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
+						'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
+						'<groundspeak:logs><% logs %></groundspeak:logs>\n'+
+				'</groundspeak:cache>\n'+
+		'</wpt>';
+
 	var Cache = window.CacheTour.Cache = function(gc_code) {
 		this.gc_code = gc_code.toUpperCase();
+		this.logs = [];
 	};
 
 	Cache.fromJSON = function(data) {
@@ -62,6 +90,25 @@
 		return "https://coord.info/" + this.gc_code;
 	};
 
+	Cache.prototype.retrieveData = function(){
+		return new Promise(function(resolve, reject) {
+			resolve();
+		}.bind(this));
+	};
+
+	Cache.prototype.toGPX = function() {
+		var log_promises = [];
+		for (var i = 0, c = this.caches.length; i < c; i++) {
+			log_promises.push(this.caches[i].toGPX());
+		}
+		return Promise.all(log_promises).then(function(logs) {
+			return CacheTour.useTemplate(template_gpx, {
+				gc_code: this.gc_code,
+				name: this.name,
+				logs: logs.join('')
+			});
+		});
+	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');
 		element.append($('<div class="cachetour_cache_name"><a href="' + this.getLink() + '">' + this.name + '</a></div>'));

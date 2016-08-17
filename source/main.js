@@ -144,6 +144,15 @@
 		getTour: function(id) {
 			return this.tours[id];
 		},
+		useTemplate: function(template, data) {
+			var out = template;
+			for (var key in data) {
+				if (data.hasOwnProperty(key)) {
+					out = out.replace(new RegExp('<% ' + key + ' %>','g'), data[key]);
+				}
+			}
+			return out.replace(/<%.+?%>/,'');
+        },		
 		addCacheToCurrentTour: function(gc_code, name) {
 			CacheTour.getCurrentTour().addCache(new CacheTour.Cache(gc_code, name));
 			return CacheTour;
