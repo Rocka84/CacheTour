@@ -45,6 +45,10 @@
 	Cache.prototype.getGcCode = function() {
 		return this.gc_code;
 	};
+	Cache.prototype.setGcCode = function(gc_code) {
+		this.gc_code = gc_code;
+		return this;
+	};
 
 	Cache.prototype.setName = function(name) {
 		this.name = name;
@@ -87,27 +91,34 @@
 	};
 
 	Cache.prototype.getLink = function() {
-		return "https://coord.info/" + this.gc_code;
+		// return "https://coord.info/" + this.gc_code;
+		return "https://www.geocaching.com/seek/cache_details.aspx?wp=" + this.gc_code;
 	};
 
-	Cache.prototype.retrieveData = function(){
+	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
-			resolve();
+			$.get(this.getLink(), function(result) {
+				(new CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				resolve();
+			}.bind(this)).fail(reject);
 		}.bind(this));
 	};
 
 	Cache.prototype.toGPX = function() {
-		var log_promises = [];
-		for (var i = 0, c = this.caches.length; i < c; i++) {
+		var log_promises = [
+			this.retrieveDetails()
+		];
+		for (var i = 0, c = this.logs.length; i < c; i++) {
 			log_promises.push(this.caches[i].toGPX());
 		}
 		return Promise.all(log_promises).then(function(logs) {
+			logs.shift();
 			return CacheTour.useTemplate(template_gpx, {
 				gc_code: this.gc_code,
 				name: this.name,
 				logs: logs.join('')
 			});
-		});
+		}.bind(this));
 	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');

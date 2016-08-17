@@ -168,6 +168,15 @@
 		getTour: function(id) {
 			return this.tours[id];
 		},
+		useTemplate: function(template, data) {
+			var out = template;
+			for (var key in data) {
+				if (data.hasOwnProperty(key)) {
+					out = out.replace(new RegExp('<% ' + key + ' %>','g'), data[key]);
+				}
+			}
+			return out.replace(/<%.+?%>/g,'');
+        },		
 		addCacheToCurrentTour: function(gc_code, name) {
 			CacheTour.getCurrentTour().addCache(new CacheTour.Cache(gc_code, name));
 			return CacheTour;
@@ -201,8 +210,36 @@
 (function(){
 	"use strict";
 
+	var template_gpx = 
+		'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
+				'<time><% time %></time>\n'+
+				'<name><% gc_code %></name>\n'+
+				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
+				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
+				'<urlname><% name %></urlname>\n'+
+				'<sym><% symbol %></sym>\n'+
+				'<type>geocache|<% type %></type>\n'+
+				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
+						'<groundspeak:name><% cachename %></groundspeak:name>\n'+
+						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
+						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
+						'<groundspeak:type><% type %></groundspeak:type>\n'+
+						'<groundspeak:container><% container %></groundspeak:container>\n'+
+						'<groundspeak:attributes><% attributes %></groundspeak:attributes>\n'+
+						'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
+						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
+						'<groundspeak:country><% country %></groundspeak:country>\n'+
+						'<groundspeak:state><% state %></groundspeak:state>\n'+
+						'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
+						'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
+						'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
+						'<groundspeak:logs><% logs %></groundspeak:logs>\n'+
+				'</groundspeak:cache>\n'+
+		'</wpt>';
+
 	var Cache = window.CacheTour.Cache = function(gc_code) {
 		this.gc_code = gc_code.toUpperCase();
+		this.logs = [];
 	};
 
 	Cache.fromJSON = function(data) {
@@ -216,6 +253,10 @@
 
 	Cache.prototype.getGcCode = function() {
 		return this.gc_code;
+	};
+	Cache.prototype.setGcCode = function(gc_code) {
+		this.gc_code = gc_code;
+		return this;
 	};
 
 	Cache.prototype.setName = function(name) {
@@ -259,9 +300,35 @@
 	};
 
 	Cache.prototype.getLink = function() {
-		return "https://coord.info/" + this.gc_code;
+		// return "https://coord.info/" + this.gc_code;
+		return "https://www.geocaching.com/seek/cache_details.aspx?wp=" + this.gc_code;
 	};
 
+	Cache.prototype.retrieveDetails = function(){
+		return new Promise(function(resolve, reject) {
+			$.get(this.getLink(), function(result) {
+				(new CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				resolve();
+			}.bind(this)).fail(reject);
+		}.bind(this));
+	};
+
+	Cache.prototype.toGPX = function() {
+		var log_promises = [
+			this.retrieveDetails()
+		];
+		for (var i = 0, c = this.logs.length; i < c; i++) {
+			log_promises.push(this.caches[i].toGPX());
+		}
+		return Promise.all(log_promises).then(function(logs) {
+			logs.shift();
+			return CacheTour.useTemplate(template_gpx, {
+				gc_code: this.gc_code,
+				name: this.name,
+				logs: logs.join('')
+			});
+		}.bind(this));
+	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');
 		element.append($('<div class="cachetour_cache_name"><a href="' + this.getLink() + '">' + this.name + '</a></div>'));
@@ -300,6 +367,127 @@
 		return this.gc_code + " " + this.name;
 	};
 })();
+
+(function(){
+	"use strict";
+
+	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
+		this.source = $(source);
+		this.Cache = Cache ? Cache : new Cache();
+		this.parseBaseData();
+	};
+
+	CacheParser.prototype.getCache = function() {
+		return this.Cache;
+	};
+
+	CacheParser.prototype.parseBaseData = function() {
+		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
+			name = this.source.find('#ctl00_ContentBody_CacheName').first().html(),
+			size = this.source.find('span.minorCacheDetails').first().html(),
+			difficulty = this.source.find('#ctl00_ContentBody_uxLegendScale').first().html(),
+			terrain = this.source.find('#ctl00_ContentBody_Localize12').first().html();
+
+		this.Cache.setGcCode(gc_code);
+		this.Cache.setName(name);
+
+		if (size.match(/\((.+)\)/)) {
+			this.Cache.setSize(RegExp.$1);
+		}
+
+		if (terrain.match(/stars([\d_]+)\./)) {
+			this.Cache.setTerrain(parseFloat(RegExp.$1.replace('_','.')));
+		}
+
+		if (difficulty.match(/stars([\d_]+)\./)) {
+			this.Cache.setDifficulty(parseFloat(RegExp.$1.replace('_','.')));
+		}
+		return this;
+	};
+
+	CacheParser.prototype.parseAttributes = function() {
+		//todo
+		return this;
+	};
+
+	CacheParser.prototype.parseDescription = function() {
+		//todo
+		return this;
+	};
+
+	CacheParser.prototype.parseLogs = function() {
+		//todo
+		return this;
+	};
+})();
+
+(function(){
+	"use strict";
+
+	var template_gpx = 
+		'<groundspeak:log id="<% id %>">\n' +
+			'<groundspeak:date><% date %></groundspeak:date>\n' +
+			'<groundspeak:type><% type %></groundspeak:type>\n' +
+			'<groundspeak:finder><% finder %></groundspeak:finder>\n' +
+			'<groundspeak:text encoded="false"><% text %></groundspeak:text>\n' +
+		'</groundspeak:log>\n';
+
+	var Log = window.CacheTour.Log = function() {
+	};
+
+	Log.prototype.getId = function() {
+		return this.id;
+	};
+	Log.prototype.setId = function(id) {
+		this.id = id;
+		return this;
+	};
+
+	Log.prototype.getDate = function() {
+		return this.date;
+	};
+	Log.prototype.setDate = function(date) {
+		this.date = date;
+		return this;
+	};
+
+	Log.prototype.getType = function() {
+		return this.type;
+	};
+	Log.prototype.setType = function(type) {
+		this.type = type;
+		return this;
+	};
+
+	Log.prototype.getFinder = function() {
+		return this.finder;
+	};
+	Log.prototype.setFinder = function(finder) {
+		this.finder = finder;
+		return this;
+	};
+
+	Log.prototype.getText = function() {
+		return this.finder;
+	};
+	Log.prototype.setText = function(text) {
+		this.text = text;
+		return this;
+	};
+
+	Log.prototype.toGPX = function() {
+		return new Promise(function(resolve, reject) {
+			resolve(CacheTour.useTemplate(template_gpx, {
+				id: this.id,
+				date: this.date,
+				type: this.type,
+				finder: this.finder,
+				text: this.text
+			}));
+		}.bind(this));
+	};
+})();
+
 
 (function(){
 	"use strict";
@@ -351,6 +539,20 @@
 
 (function(){
 	"use strict";
+
+	var template_gpx =
+	'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
+		'<name><% name %></name>\n' +
+		'<desc>this is an individual cache generated from geocaching.com</desc>\n' +
+		'<author>CacheTour</author>\n' +
+		'<url>http://www.geocaching.com</url>\n' +
+		'<urlname>geocaching - high tech treasure hunting</urlname>\n' +
+		// '<time>' + xsddatetime(new date()) + '</time>\n' +
+		'<keywords>cache, geocache</keywords>\n' +
+		'<bounds minlat="<% minlat %>" minlon="<% minlon %>" maxlat="<% maxlat %>" maxlon="<% maxlon %>" />\n' +
+		'<% caches %>\n' +
+		'<% waypoints %>\n' +
+	'</gpx>';
 
 	var Tour = window.CacheTour.Tour = function(name){
 		this.name = name || 'Tour ' + new Date().toISOString();
@@ -434,6 +636,19 @@
 
 	Tour.prototype.getCaches = function() {
 		return this.caches;
+	};
+
+	Tour.prototype.toGPX = function() {
+		var cache_promises = [];
+		for (var i = 0, c = this.caches.length; i < c; i++) {
+			cache_promises.push(this.caches[i].toGPX());
+		}
+		return Promise.all(cache_promises).then(function(caches) {
+			return CacheTour.useTemplate(template_gpx, {
+				name: this.name,
+				caches: caches.join('')
+			});
+		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">');
@@ -691,27 +906,9 @@
 
 				add_to_tour_button.click(function(event) {
 					event.preventDefault();
-					var gc_code = $('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
-						Cache = new CacheTour.Cache(gc_code),
-						name = $('#ctl00_ContentBody_CacheName').first().html(),
-						element_size = $('span.minorCacheDetails'),
-						element_difficulty = $('#ctl00_ContentBody_uxLegendScale'),
-						element_terrain = $('#ctl00_ContentBody_Localize12');
 
-					Cache.setName(name);
-					if (element_size.size() > 0 && element_size.first().html().match(/\((.+)\)/)) {
-						Cache.setSize(RegExp.$1);
-					}
-
-					if (element_terrain.size() > 0 && element_terrain.first().html().match(/stars([\d_]+)\./)) {
-						Cache.setTerrain(parseFloat(RegExp.$1.replace('_','.')));
-					}
-
-					if (element_difficulty.size() > 0 && element_difficulty.first().html().match(/stars([\d_]+)\./)) {
-						Cache.setDifficulty(parseFloat(RegExp.$1.replace('_','.')));
-					}
-
-					CacheTour.getCurrentTour().addCache(Cache);
+					var Parser = new CacheTour.CacheParser(document.body);
+					CacheTour.getCurrentTour().addCache(Parser.getCache());
 					return false;
 				});
 
@@ -719,6 +916,94 @@
 			}
 		})
 	);
+})();
+
+(function(){
+	"use strict";
+
+	//@todo move templates somewhere else - 
+	var tpl_gpx =
+			'<?xml version="1.0" encoding="utf-8"?>\n' +
+			'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
+				'<name><% name %></name>\n'+
+				'<desc>this is an individual cache generated from geocaching.com</desc>\n'+
+				'<author>CacheTour</author>\n'+
+				'<url>http://www.geocaching.com</url>\n'+
+				'<urlname>geocaching - high tech treasure hunting</urlname>\n'+
+				// '<time>'+ xsddatetime(new date()) + '</time>\n'+
+				'<keywords>cache, geocache</keywords>\n'+
+				'<bounds minlat="<% minlat %>" minlon="<% minlon %>" maxlat="<% maxlat %>" maxlon="<% maxlon %>" />\n'+
+				'<% geocaches %>\n'+
+				'<% waypoints %>\n'+
+			'</gpx>',
+
+	tpl_cache =
+			'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
+				'<time><% time %></time>\n'+
+				'<name><% gcid %></name>\n'+
+				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+ //'<url>http://www.geocaching.com/seek/cache_details.aspx?wp=<% gcid %></url>\n'+
+				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
+				'<urlname><% cachename %></urlname>\n'+
+				'<sym><% cachesym %></sym>\n'+
+				'<type>geocache|<% type %></type>\n'+
+				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
+					'<groundspeak:name><% cachename %></groundspeak:name>\n'+
+					'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
+					'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
+					'<groundspeak:type><% type %></groundspeak:type>\n'+
+					'<groundspeak:container><% container %></groundspeak:container>\n'+
+					'<groundspeak:attributes>\n<% attributes %>    </groundspeak:attributes>\n'+
+					'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
+					'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
+					'<groundspeak:country><% country %></groundspeak:country>\n'+
+					'<groundspeak:state><% state %></groundspeak:state>\n'+
+					'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
+					'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
+					'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
+					'<groundspeak:logs>\n<% logs %>    </groundspeak:logs>\n'+
+				'</groundspeak:cache>\n'+
+			'</wpt>',
+
+	tpl_log =
+			'<groundspeak:log id="<% logid %>">\n'+
+				'<groundspeak:date><% time %></groundspeak:date>\n'+
+				'<groundspeak:type><% logtype %></groundspeak:type>\n'+
+				'<groundspeak:finder><% cachername %></groundspeak:finder>\n'+
+				'<groundspeak:text encoded="false"><% logtext %></groundspeak:text>\n'+
+			'</groundspeak:log>\n';
+
+	function useTemplate(template, data) {
+		var out = template;
+		for (var key in data) {
+			if (data.hasOwnProperty(key)) {
+				out = out.replace(new RegExp('<% ' + key + ' %>','g'), data[key]);
+			}
+		}
+		return out.replace(/<%.+?%>/,'');
+	}
+
+	CacheTour.registerModule(new CacheTour.Module({
+		name:"Cache downloader",
+		requirements: { url: /.+\/geocache\/.*#to_gpx/ },
+		run: function() {
+			console.log('Create GPX!');
+			var logs = "", // @todo: create logs
+				coord_matches = $('#uxLatLon').text().match(/N (.+) E (.+)/),
+				gpx = useTemplate(tpl_gpx, {
+					gc_code: $('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
+					lat: Geo.parseDMS(coord_matches[1]),
+					lon: Geo.parseDMS(coord_matches[2]),
+					name: $('#ctl00_ContentBody_CacheName').first().text(),
+					size: $('span.minorCacheDetails').first().html().match(/\((.+)\)/)[1],
+					difficulty: $('#ctl00_ContentBody_uxLegendScale').first().html().match(/stars([\d_]+)\./)[1].replace('_','.'),
+					terrain: $('#ctl00_ContentBody_Localize12').first().html().match(/stars([\d_]+)\./)[1].replace('_','.'),
+					logs: logs
+				});
+			$(document.head).empty();
+			$(document.body).text(gpx);
+			// console.log(gpx);
+		}
+	}));
 })();
 
 CacheTour.initialize();

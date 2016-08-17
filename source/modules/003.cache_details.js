@@ -16,27 +16,9 @@
 
 				add_to_tour_button.click(function(event) {
 					event.preventDefault();
-					var gc_code = $('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
-						Cache = new CacheTour.Cache(gc_code),
-						name = $('#ctl00_ContentBody_CacheName').first().html(),
-						element_size = $('span.minorCacheDetails'),
-						element_difficulty = $('#ctl00_ContentBody_uxLegendScale'),
-						element_terrain = $('#ctl00_ContentBody_Localize12');
 
-					Cache.setName(name);
-					if (element_size.size() > 0 && element_size.first().html().match(/\((.+)\)/)) {
-						Cache.setSize(RegExp.$1);
-					}
-
-					if (element_terrain.size() > 0 && element_terrain.first().html().match(/stars([\d_]+)\./)) {
-						Cache.setTerrain(parseFloat(RegExp.$1.replace('_','.')));
-					}
-
-					if (element_difficulty.size() > 0 && element_difficulty.first().html().match(/stars([\d_]+)\./)) {
-						Cache.setDifficulty(parseFloat(RegExp.$1.replace('_','.')));
-					}
-
-					CacheTour.getCurrentTour().addCache(Cache);
+					var Parser = new CacheTour.CacheParser(document.body);
+					CacheTour.getCurrentTour().addCache(Parser.getCache());
 					return false;
 				});
 

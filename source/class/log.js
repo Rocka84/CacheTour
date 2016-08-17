@@ -3,7 +3,7 @@
 
 	var template_gpx = 
 		'<groundspeak:log id="<% id %>">\n' +
-			'<groundspeak:date><% time %></groundspeak:date>\n' +
+			'<groundspeak:date><% date %></groundspeak:date>\n' +
 			'<groundspeak:type><% type %></groundspeak:type>\n' +
 			'<groundspeak:finder><% finder %></groundspeak:finder>\n' +
 			'<groundspeak:text encoded="false"><% text %></groundspeak:text>\n' +
@@ -60,8 +60,8 @@
 				type: this.type,
 				finder: this.finder,
 				text: this.text
-			});
-		});
+			}));
+		}.bind(this));
 	};
 })();
 

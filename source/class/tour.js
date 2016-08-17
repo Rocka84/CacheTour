@@ -109,7 +109,7 @@
 				name: this.name,
 				caches: caches.join('')
 			});
-		});
+		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">');

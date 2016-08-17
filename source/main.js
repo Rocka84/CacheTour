@@ -151,7 +151,7 @@
 					out = out.replace(new RegExp('<% ' + key + ' %>','g'), data[key]);
 				}
 			}
-			return out.replace(/<%.+?%>/,'');
+			return out.replace(/<%.+?%>/g,'');
         },		
 		addCacheToCurrentTour: function(gc_code, name) {
 			CacheTour.getCurrentTour().addCache(new CacheTour.Cache(gc_code, name));
