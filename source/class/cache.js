@@ -5,13 +5,13 @@
 		'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
 				'<time><% time %></time>\n'+
 				'<name><% gc_code %></name>\n'+
-				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
+				'<desc><% name %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
 				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
 				'<urlname><% name %></urlname>\n'+
 				'<sym><% symbol %></sym>\n'+
 				'<type>geocache|<% type %></type>\n'+
 				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
-						'<groundspeak:name><% cachename %></groundspeak:name>\n'+
+						'<groundspeak:name><% name %></groundspeak:name>\n'+
 						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
 						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
 						'<groundspeak:type><% type %></groundspeak:type>\n'+
@@ -21,8 +21,8 @@
 						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
 						'<groundspeak:country><% country %></groundspeak:country>\n'+
 						'<groundspeak:state><% state %></groundspeak:state>\n'+
-						'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
-						'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
+						'<groundspeak:short_description html="true"><% short_description %></groundspeak:short_description>\n'+
+						'<groundspeak:long_description html="true"><% long_description %></groundspeak:long_description>\n'+
 						'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
 						'<groundspeak:logs><% logs %></groundspeak:logs>\n'+
 				'</groundspeak:cache>\n'+
@@ -31,6 +31,7 @@
 	var Cache = window.CacheTour.Cache = function(gc_code) {
 		this.gc_code = gc_code.toUpperCase();
 		this.logs = [];
+		this.attributes = [];
 	};
 
 	Cache.fromJSON = function(data) {
@@ -95,6 +96,22 @@
 		return "https://www.geocaching.com/seek/cache_details.aspx?wp=" + this.gc_code;
 	};
 
+	Cache.prototype.addAttribute = function(attribute) {
+		this.attributes.push(attribute);
+	};
+
+	Cache.prototype.addLog = function(Log) {
+		this.logs.push(Log);
+	};
+
+	Cache.prototype.setLongDescription = function(description) {
+		this.long_description = description;
+	};
+
+	Cache.prototype.setShortDescription = function(description) {
+		this.short_description = description;
+	};
+
 	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
 			$.get(this.getLink(), function(result) {
@@ -116,7 +133,13 @@
 			return CacheTour.useTemplate(template_gpx, {
 				gc_code: this.gc_code,
 				name: this.name,
-				logs: logs.join('')
+				logs: logs.join(''),
+				attributes: this.attributes.join(''),
+				owner: this.owner,
+				difficulty: this.difficulty,
+				terrain: this.terrain,
+				short_description: this.short_description,
+				long_description: this.long_description
 			});
 		}.bind(this));
 	};

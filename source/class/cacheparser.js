@@ -36,17 +36,32 @@
 	};
 
 	CacheParser.prototype.parseAttributes = function() {
-		//todo
+		this.source.find('#ctl00_ContentBody_detailWidget img').each(function(key,el) {
+			this.Cache.addAttribute($(el).attr('title'));
+		}.bind(this));
 		return this;
 	};
 
 	CacheParser.prototype.parseDescription = function() {
-		//todo
+		this.Cache.setShortDescription(this.source.find('#ctl00_ContentBody_ShortDescription').first().html());
+		this.Cache.setLongDescription(this.source.find('#ctl00_ContentBody_LongDescription').first().html());
 		return this;
 	};
 
-	CacheParser.prototype.parseLogs = function() {
-		//todo
+	CacheParser.prototype.parseLogs = function(limit) {
+		limit = limit || 20;
+		var count = 0;
+		this.source.find('#cache_logs_container .log-row').each(function(key,el) {
+			if (count < limit) {
+				count++;
+				var Log = new CacheTour.Log();
+				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text());
+				Log.setType(this.source.find('.LogType a img').first().attr('title'));
+				Log.setDate(this.source.find('.LogDate').first().text());
+				Log.setText(this.source.find('.LogText').first().html());
+				this.Cache.addLog(Log);
+			}
+		}.bind(this));
 		return this;
 	};
 })();
