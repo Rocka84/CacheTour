@@ -7,7 +7,7 @@ module.exports = function (grunt) {
 			options: {
 				node:true
 			},
-			src: ["source/*.js"],
+			src: ["source/*/*.js"],
 			grunt: ["Gruntfile.js"]
 		},
 		concat: {

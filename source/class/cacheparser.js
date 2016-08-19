@@ -3,14 +3,14 @@
 
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
 		this.source = $(source);
-		this.Cache = Cache ? Cache : new Cache();
+		this.Cache = Cache ? Cache : new CacheTour.Cache();
 		this.parseBaseData();
 	};
 
 	CacheParser.prototype.getCache = function() {
 		return this.Cache;
 	};
-
+	
 	CacheParser.prototype.parseBaseData = function() {
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
 			name = this.source.find('#ctl00_ContentBody_CacheName').first().html(),
@@ -20,6 +20,9 @@
 
 		this.Cache.setGcCode(gc_code);
 		this.Cache.setName(name);
+		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
+		
+		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
 
 		if (size.match(/\((.+)\)/)) {
 			this.Cache.setSize(RegExp.$1);
@@ -35,7 +38,16 @@
 		return this;
 	};
 
+	CacheParser.prototype.parseAllExtras = function() {
+		return this
+			.parseCoordinates()
+			.parseAttributes()
+			.parseDescription()
+			.parseLogs();
+	};
+
 	CacheParser.prototype.parseAttributes = function() {
+		this.Cache.clearAttributes();
 		this.source.find('#ctl00_ContentBody_detailWidget img').each(function(key,el) {
 			this.Cache.addAttribute($(el).attr('title'));
 		}.bind(this));
@@ -48,17 +60,23 @@
 		return this;
 	};
 
+	Cache.prototype.parseCoordinates = function() {
+		this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
+		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(RegExp.$1), Geo.parseDMS(RegExp.$2)));
+	};
+
 	CacheParser.prototype.parseLogs = function(limit) {
+		this.Cache.clearLogs();
 		limit = limit || 20;
 		var count = 0;
 		this.source.find('#cache_logs_container .log-row').each(function(key,el) {
 			if (count < limit) {
 				count++;
 				var Log = new CacheTour.Log();
-				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text());
-				Log.setType(this.source.find('.LogType a img').first().attr('title'));
-				Log.setDate(this.source.find('.LogDate').first().text());
-				Log.setText(this.source.find('.LogText').first().html());
+				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text())
+					.setType(this.source.find('.LogType a img').first().attr('title'))
+					.setDate(this.source.find('.LogDate').first().text())
+					.setText(this.source.find('.LogText').first().html());
 				this.Cache.addLog(Log);
 			}
 		}.bind(this));

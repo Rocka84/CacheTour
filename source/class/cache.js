@@ -3,10 +3,10 @@
 
 	var template_gpx = 
 		'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
-				'<time><% time %></time>\n'+
+				'<time><% date %></time>\n'+
 				'<name><% gc_code %></name>\n'+
 				'<desc><% name %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
-				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
+				'<url><% link %></url>\n'+
 				'<urlname><% name %></urlname>\n'+
 				'<sym><% symbol %></sym>\n'+
 				'<type>geocache|<% type %></type>\n'+
@@ -16,22 +16,23 @@
 						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
 						'<groundspeak:type><% type %></groundspeak:type>\n'+
 						'<groundspeak:container><% container %></groundspeak:container>\n'+
-						'<groundspeak:attributes><% attributes %></groundspeak:attributes>\n'+
 						'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
 						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
 						'<groundspeak:country><% country %></groundspeak:country>\n'+
 						'<groundspeak:state><% state %></groundspeak:state>\n'+
+						'<groundspeak:attributes>\n<% attributes %>\n</groundspeak:attributes>\n'+
 						'<groundspeak:short_description html="true"><% short_description %></groundspeak:short_description>\n'+
 						'<groundspeak:long_description html="true"><% long_description %></groundspeak:long_description>\n'+
 						'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
-						'<groundspeak:logs><% logs %></groundspeak:logs>\n'+
+						'<groundspeak:logs>\n<% logs %>\n</groundspeak:logs>\n'+
 				'</groundspeak:cache>\n'+
 		'</wpt>';
 
 	var Cache = window.CacheTour.Cache = function(gc_code) {
-		this.gc_code = gc_code.toUpperCase();
+		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
 		this.logs = [];
 		this.attributes = [];
+		this.type = 'regular';
 	};
 
 	Cache.fromJSON = function(data) {
@@ -47,7 +48,7 @@
 		return this.gc_code;
 	};
 	Cache.prototype.setGcCode = function(gc_code) {
-		this.gc_code = gc_code;
+		this.gc_code = gc_code.toUpperCase();
 		return this;
 	};
 
@@ -98,10 +99,22 @@
 
 	Cache.prototype.addAttribute = function(attribute) {
 		this.attributes.push(attribute);
+		return this;
+	};
+
+	Cache.prototype.clearAttributes = function() {
+		this.attributes = [];
+		return this;
 	};
 
 	Cache.prototype.addLog = function(Log) {
 		this.logs.push(Log);
+		return this;
+	};
+
+	Cache.prototype.clearLogs = function() {
+		this.logs = [];
+		return this;
 	};
 
 	Cache.prototype.setLongDescription = function(description) {
@@ -112,10 +125,21 @@
 		this.short_description = description;
 	};
 
+	Cache.prototype.getCoordinates = function() {
+		if (!this.coordinates) {
+			this.coordinates = new CacheTour.Coordinates();
+		}
+		return this.coordinates;
+	};
+
+	Cache.prototype.setCoordinates = function(coordinates) {
+		this.coordinates = coordinates;
+	};
+
 	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
 			$.get(this.getLink(), function(result) {
-				(new CacheTour.CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				(new CacheTour.CacheParser(result, this)).parseAllExtras();
 				resolve();
 			}.bind(this)).fail(reject);
 		}.bind(this));
@@ -133,13 +157,19 @@
 			return CacheTour.useTemplate(template_gpx, {
 				gc_code: this.gc_code,
 				name: this.name,
-				logs: logs.join(''),
-				attributes: this.attributes.join(''),
 				owner: this.owner,
 				difficulty: this.difficulty,
 				terrain: this.terrain,
 				short_description: this.short_description,
-				long_description: this.long_description
+				long_description: this.long_description,
+				available: this.available !== false ? 'TRUE' : 'FALSE',
+				archived: this.archived ? 'TRUE' : 'FALSE',
+				link: this.getLink(),
+				date: this.date,
+				logs: logs.join('\n'),
+				attributes: this.attributes.join('\n'),
+				lat: this.getCoordinates().getLatitude(),
+				lon: this.getCoordinates().getLongitude()
 			});
 		}.bind(this));
 	};
