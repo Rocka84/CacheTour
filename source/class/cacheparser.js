@@ -49,7 +49,9 @@
 	CacheParser.prototype.parseAttributes = function() {
 		this.Cache.clearAttributes();
 		this.source.find('#ctl00_ContentBody_detailWidget img').each(function(key,el) {
-			this.Cache.addAttribute($(el).attr('title'));
+			if ($(el).attr('src').match(/([^\/]*)-(yes|no)\./)) {
+				this.Cache.addAttribute(CacheTour.Attribute.createByName(RegExp.$1, RegExp.$2 === 'no'));
+			}
 		}.bind(this));
 		return this;
 	};
