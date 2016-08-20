@@ -15,7 +15,7 @@
 						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
 						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
 						'<groundspeak:type><% type %></groundspeak:type>\n'+
-						'<groundspeak:container><% container %></groundspeak:container>\n'+
+						'<groundspeak:container><% size %></groundspeak:container>\n'+
 						'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
 						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
 						'<groundspeak:country><% country %></groundspeak:country>\n'+
@@ -74,6 +74,22 @@
 	};
 	Cache.prototype.getTerrain = function() {
 		return this.terrain;
+	};
+
+	Cache.prototype.setDate = function(date) {
+		this.date = date;
+		return this;
+	};
+	Cache.prototype.getDate = function() {
+		return this.date;
+	};
+
+	Cache.prototype.setOwner = function(owner) {
+		this.owner = owner;
+		return this;
+	};
+	Cache.prototype.getOwner = function() {
+		return this.owner;
 	};
 
 	Cache.prototype.setSize = function(size) {
@@ -150,27 +166,29 @@
 			this.retrieveDetails()
 		];
 		for (var i = 0, c = this.logs.length; i < c; i++) {
-			log_promises.push(this.caches[i].toGPX());
+			log_promises.push(this.logs[i].toGPX());
 		}
 		return Promise.all(log_promises).then(function(logs) {
-			logs.shift();
-			return CacheTour.useTemplate(template_gpx, {
-				gc_code: this.gc_code,
-				name: this.name,
-				owner: this.owner,
-				difficulty: this.difficulty,
-				terrain: this.terrain,
-				short_description: this.short_description,
-				long_description: this.long_description,
-				available: this.available !== false ? 'TRUE' : 'FALSE',
-				archived: this.archived ? 'TRUE' : 'FALSE',
-				link: this.getLink(),
-				date: this.date,
-				logs: logs.join('\n'),
-				attributes: this.attributes.join('\n'),
-				lat: this.getCoordinates().getLatitude(),
-				lon: this.getCoordinates().getLongitude()
-			});
+			var attrib_promises = [];
+			for (var i = 0, c = this.attributes.length; i < c; i++) {
+				attrib_promises.push(this.attributes[i].toGPX());
+			}
+			return Promise.all(attrib_promises).then(function(attributes) {
+				logs.shift(); // remove results of retrieveDetails()
+
+				var data = this.toJSON();
+				data.logs = logs.join('\n');
+				data.attributes = attributes.join('\n');
+				data.short_description = this.short_description;
+				data.long_description = this.long_description;
+				data.lat = this.getCoordinates().getLatitude();
+				data.lon = this.getCoordinates().getLongitude();
+				data.available = this.available !== false ? 'TRUE' : 'FALSE';
+				data.archived = this.archived ? 'TRUE' : 'FALSE';
+				data.link = this.getLink();
+
+				return CacheTour.useTemplate(template_gpx, data);
+			}.bind(this));
 		}.bind(this));
 	};
 	Cache.prototype.toElement = function() {
@@ -202,9 +220,13 @@
 		return {
 			gc_code: this.gc_code,
 			name: this.name,
+			owner: this.owner,
 			difficulty: this.difficulty,
 			terrain: this.terrain,
-			size: this.size
+			available: this.available,
+			archived: this.archived,
+			size: this.size,
+			date: this.date
 		};
 	};
 	Cache.prototype.toString = function() {

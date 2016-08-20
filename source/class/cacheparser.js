@@ -60,9 +60,10 @@
 		return this;
 	};
 
-	Cache.prototype.parseCoordinates = function() {
+	CacheParser.prototype.parseCoordinates = function() {
 		this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
 		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(RegExp.$1), Geo.parseDMS(RegExp.$2)));
+		return this;
 	};
 
 	CacheParser.prototype.parseLogs = function(limit) {

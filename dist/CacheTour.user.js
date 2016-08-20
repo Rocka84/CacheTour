@@ -210,36 +210,55 @@
 (function(){
 	"use strict";
 
+	var Attribute = CacheTour.Attribute = function(type, invert) {
+		this.type = type;
+		this.invert = !!invert;
+	};
+
+	Attribute.toGPX = function() {
+		return new Promise(function(resolve, reject) {
+			return '<attribute>' + (this.invert ? 'no ' : '') + '</attribute>';
+		});
+	};
+
+})();
+
+
+(function(){
+	"use strict";
+
 	var template_gpx = 
 		'<wpt lat="<% lat %>" lon="<% lon %>">\n'+
-				'<time><% time %></time>\n'+
+				'<time><% date %></time>\n'+
 				'<name><% gc_code %></name>\n'+
-				'<desc><% cachename %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
-				'<url>http://www.geocaching.com/seek/cache_details.aspx?guid=<% guid %></url>\n'+
+				'<desc><% name %> by <% owner %>, <% type %> (<% difficulty %>/<% terrain %>)</desc>\n'+
+				'<url><% link %></url>\n'+
 				'<urlname><% name %></urlname>\n'+
 				'<sym><% symbol %></sym>\n'+
 				'<type>geocache|<% type %></type>\n'+
 				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
-						'<groundspeak:name><% cachename %></groundspeak:name>\n'+
+						'<groundspeak:name><% name %></groundspeak:name>\n'+
 						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
 						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
 						'<groundspeak:type><% type %></groundspeak:type>\n'+
-						'<groundspeak:container><% container %></groundspeak:container>\n'+
-						'<groundspeak:attributes><% attributes %></groundspeak:attributes>\n'+
+						'<groundspeak:container><% size %></groundspeak:container>\n'+
 						'<groundspeak:difficulty><% difficulty %></groundspeak:difficulty>\n'+
 						'<groundspeak:terrain><% terrain %></groundspeak:terrain>\n'+
 						'<groundspeak:country><% country %></groundspeak:country>\n'+
 						'<groundspeak:state><% state %></groundspeak:state>\n'+
-						'<groundspeak:short_description html="true"><% summary %></groundspeak:short_description>\n'+
-						'<groundspeak:long_description html="true"><% description %></groundspeak:long_description>\n'+
+						'<groundspeak:attributes>\n<% attributes %>\n</groundspeak:attributes>\n'+
+						'<groundspeak:short_description html="true"><% short_description %></groundspeak:short_description>\n'+
+						'<groundspeak:long_description html="true"><% long_description %></groundspeak:long_description>\n'+
 						'<groundspeak:encoded_hints><% hint %></groundspeak:encoded_hints>\n'+
-						'<groundspeak:logs><% logs %></groundspeak:logs>\n'+
+						'<groundspeak:logs>\n<% logs %>\n</groundspeak:logs>\n'+
 				'</groundspeak:cache>\n'+
 		'</wpt>';
 
 	var Cache = window.CacheTour.Cache = function(gc_code) {
-		this.gc_code = gc_code.toUpperCase();
+		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
 		this.logs = [];
+		this.attributes = [];
+		this.type = 'regular';
 	};
 
 	Cache.fromJSON = function(data) {
@@ -255,7 +274,7 @@
 		return this.gc_code;
 	};
 	Cache.prototype.setGcCode = function(gc_code) {
-		this.gc_code = gc_code;
+		this.gc_code = gc_code.toUpperCase();
 		return this;
 	};
 
@@ -283,6 +302,22 @@
 		return this.terrain;
 	};
 
+	Cache.prototype.setDate = function(date) {
+		this.date = date;
+		return this;
+	};
+	Cache.prototype.getDate = function() {
+		return this.date;
+	};
+
+	Cache.prototype.setOwner = function(owner) {
+		this.owner = owner;
+		return this;
+	};
+	Cache.prototype.getOwner = function() {
+		return this.owner;
+	};
+
 	Cache.prototype.setSize = function(size) {
 		this.size = size;
 		return this;
@@ -304,10 +339,49 @@
 		return "https://www.geocaching.com/seek/cache_details.aspx?wp=" + this.gc_code;
 	};
 
+	Cache.prototype.addAttribute = function(attribute) {
+		this.attributes.push(attribute);
+		return this;
+	};
+
+	Cache.prototype.clearAttributes = function() {
+		this.attributes = [];
+		return this;
+	};
+
+	Cache.prototype.addLog = function(Log) {
+		this.logs.push(Log);
+		return this;
+	};
+
+	Cache.prototype.clearLogs = function() {
+		this.logs = [];
+		return this;
+	};
+
+	Cache.prototype.setLongDescription = function(description) {
+		this.long_description = description;
+	};
+
+	Cache.prototype.setShortDescription = function(description) {
+		this.short_description = description;
+	};
+
+	Cache.prototype.getCoordinates = function() {
+		if (!this.coordinates) {
+			this.coordinates = new CacheTour.Coordinates();
+		}
+		return this.coordinates;
+	};
+
+	Cache.prototype.setCoordinates = function(coordinates) {
+		this.coordinates = coordinates;
+	};
+
 	Cache.prototype.retrieveDetails = function(){
 		return new Promise(function(resolve, reject) {
 			$.get(this.getLink(), function(result) {
-				(new CacheTour.CacheParser(result, this)).parseAttributes().parseDescription().parseLogs();
+				(new CacheTour.CacheParser(result, this)).parseAllExtras();
 				resolve();
 			}.bind(this)).fail(reject);
 		}.bind(this));
@@ -318,15 +392,29 @@
 			this.retrieveDetails()
 		];
 		for (var i = 0, c = this.logs.length; i < c; i++) {
-			log_promises.push(this.caches[i].toGPX());
+			log_promises.push(this.logs[i].toGPX());
 		}
 		return Promise.all(log_promises).then(function(logs) {
-			logs.shift();
-			return CacheTour.useTemplate(template_gpx, {
-				gc_code: this.gc_code,
-				name: this.name,
-				logs: logs.join('')
-			});
+			var attrib_promises = [];
+			for (var i = 0, c = this.attributes.length; i < c; i++) {
+				attrib_promises.push(this.attributes[i].toGPX());
+			}
+			return Promise.all(attrib_promises).then(function(attributes) {
+				logs.shift(); // remove results of retrieveDetails()
+
+				var data = this.toJSON();
+				data.logs = logs.join('\n');
+				data.attributes = attributes.join('\n');
+				data.short_description = this.short_description;
+				data.long_description = this.long_description;
+				data.lat = this.getCoordinates().getLatitude();
+				data.lon = this.getCoordinates().getLongitude();
+				data.available = this.available !== false ? 'TRUE' : 'FALSE';
+				data.archived = this.archived ? 'TRUE' : 'FALSE';
+				data.link = this.getLink();
+
+				return CacheTour.useTemplate(template_gpx, data);
+			}.bind(this));
 		}.bind(this));
 	};
 	Cache.prototype.toElement = function() {
@@ -358,9 +446,13 @@
 		return {
 			gc_code: this.gc_code,
 			name: this.name,
+			owner: this.owner,
 			difficulty: this.difficulty,
 			terrain: this.terrain,
-			size: this.size
+			available: this.available,
+			archived: this.archived,
+			size: this.size,
+			date: this.date
 		};
 	};
 	Cache.prototype.toString = function() {
@@ -373,14 +465,14 @@
 
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
 		this.source = $(source);
-		this.Cache = Cache ? Cache : new Cache();
+		this.Cache = Cache ? Cache : new CacheTour.Cache();
 		this.parseBaseData();
 	};
 
 	CacheParser.prototype.getCache = function() {
 		return this.Cache;
 	};
-
+	
 	CacheParser.prototype.parseBaseData = function() {
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
 			name = this.source.find('#ctl00_ContentBody_CacheName').first().html(),
@@ -390,6 +482,9 @@
 
 		this.Cache.setGcCode(gc_code);
 		this.Cache.setName(name);
+		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
+		
+		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
 
 		if (size.match(/\((.+)\)/)) {
 			this.Cache.setSize(RegExp.$1);
@@ -405,19 +500,82 @@
 		return this;
 	};
 
+	CacheParser.prototype.parseAllExtras = function() {
+		return this
+			.parseCoordinates()
+			.parseAttributes()
+			.parseDescription()
+			.parseLogs();
+	};
+
 	CacheParser.prototype.parseAttributes = function() {
-		//todo
+		this.Cache.clearAttributes();
+		this.source.find('#ctl00_ContentBody_detailWidget img').each(function(key,el) {
+			this.Cache.addAttribute($(el).attr('title'));
+		}.bind(this));
 		return this;
 	};
 
 	CacheParser.prototype.parseDescription = function() {
-		//todo
+		this.Cache.setShortDescription(this.source.find('#ctl00_ContentBody_ShortDescription').first().html());
+		this.Cache.setLongDescription(this.source.find('#ctl00_ContentBody_LongDescription').first().html());
 		return this;
 	};
 
-	CacheParser.prototype.parseLogs = function() {
-		//todo
+	CacheParser.prototype.parseCoordinates = function() {
+		this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
+		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(RegExp.$1), Geo.parseDMS(RegExp.$2)));
 		return this;
+	};
+
+	CacheParser.prototype.parseLogs = function(limit) {
+		this.Cache.clearLogs();
+		limit = limit || 20;
+		var count = 0;
+		this.source.find('#cache_logs_container .log-row').each(function(key,el) {
+			if (count < limit) {
+				count++;
+				var Log = new CacheTour.Log();
+				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text())
+					.setType(this.source.find('.LogType a img').first().attr('title'))
+					.setDate(this.source.find('.LogDate').first().text())
+					.setText(this.source.find('.LogText').first().html());
+				this.Cache.addLog(Log);
+			}
+		}.bind(this));
+		return this;
+	};
+})();
+
+(function() {
+	"use strict";
+
+	var Coordinates = CacheTour.Coordinates = function(latitude, longitude) {
+		this.latitude = latitude;
+		this.longitude = longitude;
+	};
+
+	Coordinates.prototype.setLatitude = function(latitude) {
+		this.latitude = latitude;
+		return this;
+	};
+
+	Coordinates.prototype.getLatitude = function() {
+		return this.latitude;
+	};
+
+	Coordinates.prototype.setLongitude = function(longitude) {
+		this.longitude = longitude;
+		return this;
+	};
+
+	Coordinates.prototype.getLongitude = function() {
+		return this.longitude;
+	};
+
+	Coordinates.prototype.getDistance = function(OtherCoordinates) {
+		//@todo this method isn't entirely correct for geo-coordinates
+		return Math.sqrt(Math.pow(this.latitude - OtherCoordinates.getLatitude(), 2) + Math.pow(this.longitude - OtherCoordinates.getLongitude(), 2));
 	};
 })();
 
