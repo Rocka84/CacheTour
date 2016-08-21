@@ -12,27 +12,23 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
-		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
-			name = this.source.find('#ctl00_ContentBody_CacheName').first().html(),
-			size = this.source.find('span.minorCacheDetails').first().html(),
-			difficulty = this.source.find('#ctl00_ContentBody_uxLegendScale').first().html(),
-			terrain = this.source.find('#ctl00_ContentBody_Localize12').first().html();
+		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
 		this.Cache.setGcCode(gc_code);
-		this.Cache.setName(name);
+		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
+		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
 		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
-		
 		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
 
-		if (size.match(/\((.+)\)/)) {
+		if (this.source.find('span.minorCacheDetails').first().text().match(/\((.+)\)/)) {
 			this.Cache.setSize(RegExp.$1);
 		}
 
-		if (terrain.match(/stars([\d_]+)\./)) {
+		if (this.source.find('#ctl00_ContentBody_Localize12').first().html().match(/stars([\d_]+)\./)) {
 			this.Cache.setTerrain(parseFloat(RegExp.$1.replace('_','.')));
 		}
 
-		if (difficulty.match(/stars([\d_]+)\./)) {
+		if (this.source.find('#ctl00_ContentBody_uxLegendScale').first().html().match(/stars([\d_]+)\./)) {
 			this.Cache.setDifficulty(parseFloat(RegExp.$1.replace('_','.')));
 		}
 		return this;
@@ -63,8 +59,8 @@
 	};
 
 	CacheParser.prototype.parseCoordinates = function() {
-		this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
-		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(RegExp.$1), Geo.parseDMS(RegExp.$2)));
+		var parts = this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
+		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(parts[1]), Geo.parseDMS(parts[2])));
 		return this;
 	};
 

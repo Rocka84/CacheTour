@@ -32,7 +32,7 @@
 		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
 		this.logs = [];
 		this.attributes = [];
-		this.type = 'regular';
+		this.type = 'traditional';
 	};
 
 	Cache.fromJSON = function(data) {
@@ -58,6 +58,14 @@
 	};
 	Cache.prototype.getName = function() {
 		return this.name;
+	};
+	
+	Cache.prototype.setType = function(type) {
+		this.type = type;
+		return this;
+	};
+	Cache.prototype.getType = function() {
+		return this.type;
 	};
 	
 	Cache.prototype.setDifficulty = function(difficulty) {
@@ -219,6 +227,7 @@
 	Cache.prototype.toJSON = function() {
 		return {
 			gc_code: this.gc_code,
+			type: this.type,
 			name: this.name,
 			owner: this.owner,
 			difficulty: this.difficulty,
