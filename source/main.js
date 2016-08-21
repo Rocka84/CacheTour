@@ -169,6 +169,13 @@
 		saveSettings: function() {
 			GM_setValue("settings", JSON.stringify(settings));
 			return CacheTour;
+		},
+		saveFile: function(filepath, content, type) {
+			saveAs(new Blob([content], {type: type || 'text/plain;charset=utf-8'}), filepath);
+			return CacheTour;
+		},
+		escapeHTML: function(html) {
+			return $('<div>').text(html).html();
 		}
 	};
 	

@@ -20,6 +20,7 @@
 // @grant         GM_xmlhttpRequest
 // @grant         GM_getResourceText
 // @grant         GM_getResourceURL
+// @require       https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js
 // ==/UserScript==
 
 (function(){
@@ -159,9 +160,6 @@
 			tours.push(Tour);
 			return CacheTour;
 		},
-		addNewTour: function(name) {
-			return CacheTour.addTour(new CacheTour.Tour(name));
-		},
 		getCurrentTour: function() {
 			return tours[current_tour];
 		},
@@ -177,10 +175,6 @@
 			}
 			return out.replace(/<%.+?%>/g,'');
         },		
-		addCacheToCurrentTour: function(gc_code, name) {
-			CacheTour.getCurrentTour().addCache(new CacheTour.Cache(gc_code, name));
-			return CacheTour;
-		},
 		getSetting: function(setting) {
 			return settings[setting];
 		},
@@ -201,7 +195,13 @@
 			GM_setValue("settings", JSON.stringify(settings));
 			return CacheTour;
 		},
-		createElement: createElement
+		saveFile: function(filepath, content, type) {
+			saveAs(new Blob([content], {type: type || 'text/plain;charset=utf-8'}), filepath);
+			return CacheTour;
+		},
+		escapeHTML: function(html) {
+			return $('<div>').text(html).html();
+		}
 	};
 	
 })();
@@ -211,7 +211,7 @@
 	"use strict";
 
 	var attribute_names = [
-		'0', // to make indexes match attribute-ids (which beginn with 1)
+		'0', // to make indexes match attribute-ids
 		'dogs',
 		'fee',
 		'rappelling',
@@ -227,7 +227,7 @@
 		'available',
 		'night',
 		'winter',
-		'16',
+		'16', // to make indexes match attribute-ids
 		'poisonoak',
 		'snakes',
 		'ticks',
@@ -257,7 +257,7 @@
 		'cow',
 		'flashlight',
 		'landf',
-		'46',
+		'46', // to make indexes match attribute-ids
 		'field_puzzle',
 		'UV',
 		'snowshoes',
@@ -347,7 +347,7 @@
 		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
 		this.logs = [];
 		this.attributes = [];
-		this.type = 'regular';
+		this.type = 'traditional';
 	};
 
 	Cache.fromJSON = function(data) {
@@ -373,6 +373,14 @@
 	};
 	Cache.prototype.getName = function() {
 		return this.name;
+	};
+	
+	Cache.prototype.setType = function(type) {
+		this.type = type;
+		return this;
+	};
+	Cache.prototype.getType = function() {
+		return this.type;
 	};
 	
 	Cache.prototype.setDifficulty = function(difficulty) {
@@ -494,8 +502,8 @@
 				var data = this.toJSON();
 				data.logs = logs.join('\n');
 				data.attributes = attributes.join('\n');
-				data.short_description = this.short_description;
-				data.long_description = this.long_description;
+				data.short_description = CacheTour.escapeHTML(this.short_description);
+				data.long_description = CacheTour.escapeHTML(this.long_description);
 				data.lat = this.getCoordinates().getLatitude();
 				data.lon = this.getCoordinates().getLongitude();
 				data.available = this.available !== false ? 'TRUE' : 'FALSE';
@@ -534,6 +542,7 @@
 	Cache.prototype.toJSON = function() {
 		return {
 			gc_code: this.gc_code,
+			type: this.type,
 			name: this.name,
 			owner: this.owner,
 			difficulty: this.difficulty,
@@ -563,27 +572,23 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
-		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html(),
-			name = this.source.find('#ctl00_ContentBody_CacheName').first().html(),
-			size = this.source.find('span.minorCacheDetails').first().html(),
-			difficulty = this.source.find('#ctl00_ContentBody_uxLegendScale').first().html(),
-			terrain = this.source.find('#ctl00_ContentBody_Localize12').first().html();
+		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
 		this.Cache.setGcCode(gc_code);
-		this.Cache.setName(name);
+		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
+		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
 		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
-		
 		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
 
-		if (size.match(/\((.+)\)/)) {
+		if (this.source.find('span.minorCacheDetails').first().text().match(/\((.+)\)/)) {
 			this.Cache.setSize(RegExp.$1);
 		}
 
-		if (terrain.match(/stars([\d_]+)\./)) {
+		if (this.source.find('#ctl00_ContentBody_Localize12').first().html().match(/stars([\d_]+)\./)) {
 			this.Cache.setTerrain(parseFloat(RegExp.$1.replace('_','.')));
 		}
 
-		if (difficulty.match(/stars([\d_]+)\./)) {
+		if (this.source.find('#ctl00_ContentBody_uxLegendScale').first().html().match(/stars([\d_]+)\./)) {
 			this.Cache.setDifficulty(parseFloat(RegExp.$1.replace('_','.')));
 		}
 		return this;
@@ -614,8 +619,8 @@
 	};
 
 	CacheParser.prototype.parseCoordinates = function() {
-		this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
-		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(RegExp.$1), Geo.parseDMS(RegExp.$2)));
+		var parts = this.source.find('#uxLatLon').text().match(/[NS] (.+) [EW] (.+)/);
+		this.Cache.setCoordinates(new CacheTour.Coordinates(Geo.parseDMS(parts[1]), Geo.parseDMS(parts[2])));
 		return this;
 	};
 
@@ -731,7 +736,7 @@
 				date: this.date,
 				type: this.type,
 				finder: this.finder,
-				text: this.text
+				text: CacheTour.escapeHTML(this.text)
 			}));
 		}.bind(this));
 	};
@@ -900,8 +905,14 @@
 		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
-		var element = $('<div class="cachetour_tour">');
-		element.append($('<div class="cachetour_tour_header">' + this.name + '</div>'));
+		var element = $('<div class="cachetour_tour">'),
+			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
+		header.append($('<div class="cachetour_tour_gpx fa fa-download" title="Download GPX"></div>').click(function() {
+			this.toGPX().then(function(content) {
+				CacheTour.saveFile(this.getName() + ".gpx", content);
+			}.bind(this));
+		}.bind(this)));
+		element.append(header);
 		for (var i = 0, c = this.caches.length; i < c; i++) {
 			element.append(this.caches[i].toElement());
 		}
@@ -1023,6 +1034,13 @@
 	text-overflow: ellipsis;\
 	white-space: nowrap;\
 	overflow: hidden;\
+	position:relative;\
+}\
+.cachetour_tour_gpx {\
+	position: absolute;\
+	right: 0.3em;\
+	top: 0.3em;\
+	cursor: pointer;\
 }\
 \
 .cachetour_cache {\

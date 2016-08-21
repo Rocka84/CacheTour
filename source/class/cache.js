@@ -187,8 +187,8 @@
 				var data = this.toJSON();
 				data.logs = logs.join('\n');
 				data.attributes = attributes.join('\n');
-				data.short_description = this.short_description;
-				data.long_description = this.long_description;
+				data.short_description = CacheTour.escapeHTML(this.short_description);
+				data.long_description = CacheTour.escapeHTML(this.long_description);
 				data.lat = this.getCoordinates().getLatitude();
 				data.lon = this.getCoordinates().getLongitude();
 				data.available = this.available !== false ? 'TRUE' : 'FALSE';

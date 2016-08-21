@@ -112,8 +112,14 @@
 		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
-		var element = $('<div class="cachetour_tour">');
-		element.append($('<div class="cachetour_tour_header">' + this.name + '</div>'));
+		var element = $('<div class="cachetour_tour">'),
+			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
+		header.append($('<div class="cachetour_tour_gpx fa fa-download" title="Download GPX"></div>').click(function() {
+			this.toGPX().then(function(content) {
+				CacheTour.saveFile(this.getName() + ".gpx", content);
+			}.bind(this));
+		}.bind(this)));
+		element.append(header);
 		for (var i = 0, c = this.caches.length; i < c; i++) {
 			element.append(this.caches[i].toElement());
 		}

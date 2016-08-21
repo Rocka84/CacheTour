@@ -27,6 +27,9 @@
   	  	  "GM_getResourceText",
   	  	  "GM_getResourceURL"
   	  ],
+  	  "require" : [
+  	  	  "https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js"
+      ],
   	  "update_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.version.js",
   	  "download_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.user.js",
   	  "icon": "https://github.com/Rocka84/CacheTour/raw/master/icon.png",

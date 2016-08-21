@@ -59,7 +59,7 @@
 				date: this.date,
 				type: this.type,
 				finder: this.finder,
-				text: this.text
+				text: CacheTour.escapeHTML(this.text)
 			}));
 		}.bind(this));
 	};

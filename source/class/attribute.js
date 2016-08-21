@@ -2,7 +2,7 @@
 	"use strict";
 
 	var attribute_names = [
-		'0', // to make indexes match attribute-ids (which beginn with 1)
+		'0', // to make indexes match attribute-ids
 		'dogs',
 		'fee',
 		'rappelling',
@@ -18,7 +18,7 @@
 		'available',
 		'night',
 		'winter',
-		'16',
+		'16', // to make indexes match attribute-ids
 		'poisonoak',
 		'snakes',
 		'ticks',
@@ -48,7 +48,7 @@
 		'cow',
 		'flashlight',
 		'landf',
-		'46',
+		'46', // to make indexes match attribute-ids
 		'field_puzzle',
 		'UV',
 		'snowshoes',

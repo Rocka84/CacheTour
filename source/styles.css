@@ -81,6 +81,13 @@
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	overflow: hidden;
+	position:relative;
+}
+.cachetour_tour_gpx {
+	position: absolute;
+	right: 0.3em;
+	top: 0.3em;
+	cursor: pointer;
 }
 
 .cachetour_cache {
