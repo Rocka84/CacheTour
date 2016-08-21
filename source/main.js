@@ -135,9 +135,6 @@
 			tours.push(Tour);
 			return CacheTour;
 		},
-		addNewTour: function(name) {
-			return CacheTour.addTour(new CacheTour.Tour(name));
-		},
 		getCurrentTour: function() {
 			return tours[current_tour];
 		},
@@ -153,10 +150,6 @@
 			}
 			return out.replace(/<%.+?%>/g,'');
         },		
-		addCacheToCurrentTour: function(gc_code, name) {
-			CacheTour.getCurrentTour().addCache(new CacheTour.Cache(gc_code, name));
-			return CacheTour;
-		},
 		getSetting: function(setting) {
 			return settings[setting];
 		},
@@ -176,8 +169,7 @@
 		saveSettings: function() {
 			GM_setValue("settings", JSON.stringify(settings));
 			return CacheTour;
-		},
-		createElement: createElement
+		}
 	};
 	
 })();
