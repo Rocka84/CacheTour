@@ -2,6 +2,7 @@
 	"use strict";
 
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
+		this.source_raw = source;
 		this.source = $(source);
 		this.Cache = Cache ? Cache : new CacheTour.Cache();
 		this.parseBaseData();
@@ -12,8 +13,10 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
+		// console.log('base', this.source);
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
+		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
 		this.Cache.setGcCode(gc_code);
 		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
 		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
@@ -65,20 +68,21 @@
 	};
 
 	CacheParser.prototype.parseLogs = function(limit) {
+		// console.log('logs', this.source.find('script').html());
 		this.Cache.clearLogs();
 		limit = limit || 20;
-		var count = 0;
-		this.source.find('#cache_logs_container .log-row').each(function(key,el) {
-			if (count < limit) {
-				count++;
+		if (this.source_raw.match(/initalLogs\s*=\s*(\{.*\});/)) {
+			var initialLogs = JSON.parse(RegExp.$1).data;
+			for (var i = 0, c = Math.min(limit, initialLogs.length); i < c; i++) {
 				var Log = new CacheTour.Log();
-				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text())
-					.setType(this.source.find('.LogType a img').first().attr('title'))
-					.setDate(this.source.find('.LogDate').first().text())
-					.setText(this.source.find('.LogText').first().html());
+				Log.setId(initialLogs[i].LogID)
+					.setFinder(initialLogs[i].UserName)
+					.setType(initialLogs[i].LogType)
+					.setDate(initialLogs[i].Visited)
+					.setText(CacheTour.escapeHTML(initialLogs[i].LogText));
 				this.Cache.addLog(Log);
 			}
-		}.bind(this));
+		}
 		return this;
 	};
 })();

@@ -34,29 +34,15 @@
 		tours = [],
 		current_tour = 0;
 
-	function createElement(options, appendTo) {
-		options = options || {};
-		var element = $('<' + (options.tag||'div') + '>');
-		for (var option in options) {
-			if (options.hasOwnProperty(option) && option != "tag") {
-				element.attr(option, options[option]);
-			}
-		}
-		if (appendTo) {
-			$(appendTo).append(element);
-		}
-		return element;
-	}
-
 	function initGui() {
-		createElement({tag:"link", rel: "stylesheet", href:"https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"}, document.body);
+		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
 		createStyles();
 
-		gui = createElement({tag: "div", id: "cachetour_gui"}, document.body);
+		gui = $('<div id="cachetour_gui">').appendTo(document.body);
 		
-		var header = createElement({tag: "div", id: "cachetour_header"}, gui);
-		createElement({tag: "i", "class": "fa fa-archive main-icon"}, header);
-		createElement({tag: "span", id: "cachetour_header"}, header).text("CacheTour");
+		var header = $('<div id="cachetour_header">').appendTo(gui);
+		$('<i class="fa fa-archive main-icon">').appendTo(header);
+		$('<span id="cachetour_header">CacheTour</span>').appendTo(header);
 
 		var pin = $('<div id="cachetour_pin" class="fa-stack">');
 		gui.append(pin);
@@ -70,7 +56,18 @@
 			gui.addClass("cachetour_pinned");
 		}
 
-		tour_wrapper = createElement({tag: "div", id: "cachetour_tour_wrapper"}, gui);
+		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
+		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(function(){
+			CacheTour.getCurrentTour().toGPX().then(function(content) {
+				CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
+			});
+		});
+
+		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
+			console.log("Not implemented yet");
+		});
+
+		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
 		updateCacheList();
 	}
 
@@ -325,7 +322,7 @@
 				'<urlname><% name %></urlname>\n'+
 				'<sym><% symbol %></sym>\n'+
 				'<type>geocache|<% type %></type>\n'+
-				'<groundspeak:cache id="<% cacheid %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
+				'<groundspeak:cache id="<% id %>" available="<% available %>" archived="<% archived %>" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1">\n'+
 						'<groundspeak:name><% name %></groundspeak:name>\n'+
 						'<groundspeak:placed_by><% owner %></groundspeak:placed_by>\n'+
 						'<groundspeak:owner><% owner %></groundspeak:owner>\n'+
@@ -364,6 +361,14 @@
 	};
 	Cache.prototype.setGcCode = function(gc_code) {
 		this.gc_code = gc_code.toUpperCase();
+		return this;
+	};
+
+	Cache.prototype.getId = function() {
+		return this.id;
+	};
+	Cache.prototype.setId = function(id) {
+		this.id = id;
 		return this;
 	};
 
@@ -485,33 +490,33 @@
 	};
 
 	Cache.prototype.toGPX = function() {
-		var log_promises = [
-			this.retrieveDetails()
-		];
-		for (var i = 0, c = this.logs.length; i < c; i++) {
-			log_promises.push(this.logs[i].toGPX());
-		}
-		return Promise.all(log_promises).then(function(logs) {
+		var logs;
+		return this.retrieveDetails().then(function() {
+			var log_promises = [];
+			for (var i = 0, c = this.logs.length; i < c; i++) {
+				log_promises.push(this.logs[i].toGPX());
+			}
+			return Promise.all(log_promises);
+		}.bind(this)).then(function(_logs) {
+			logs = _logs;
 			var attrib_promises = [];
 			for (var i = 0, c = this.attributes.length; i < c; i++) {
 				attrib_promises.push(this.attributes[i].toGPX());
 			}
-			return Promise.all(attrib_promises).then(function(attributes) {
-				logs.shift(); // remove results of retrieveDetails()
+			return Promise.all(attrib_promises);
+		}.bind(this)).then(function(attributes) {
+			var data = this.toJSON();
+			data.logs = logs.join('\n');
+			data.attributes = attributes.join('\n');
+			data.short_description = CacheTour.escapeHTML(this.short_description);
+			data.long_description = CacheTour.escapeHTML(this.long_description);
+			data.lat = this.getCoordinates().getLatitude();
+			data.lon = this.getCoordinates().getLongitude();
+			data.available = this.available !== false ? 'TRUE' : 'FALSE';
+			data.archived = this.archived ? 'TRUE' : 'FALSE';
+			data.link = this.getLink();
 
-				var data = this.toJSON();
-				data.logs = logs.join('\n');
-				data.attributes = attributes.join('\n');
-				data.short_description = CacheTour.escapeHTML(this.short_description);
-				data.long_description = CacheTour.escapeHTML(this.long_description);
-				data.lat = this.getCoordinates().getLatitude();
-				data.lon = this.getCoordinates().getLongitude();
-				data.available = this.available !== false ? 'TRUE' : 'FALSE';
-				data.archived = this.archived ? 'TRUE' : 'FALSE';
-				data.link = this.getLink();
-
-				return CacheTour.useTemplate(template_gpx, data);
-			}.bind(this));
+			return CacheTour.useTemplate(template_gpx, data);
 		}.bind(this));
 	};
 	Cache.prototype.toElement = function() {
@@ -542,6 +547,7 @@
 	Cache.prototype.toJSON = function() {
 		return {
 			gc_code: this.gc_code,
+			id: this.id,
 			type: this.type,
 			name: this.name,
 			owner: this.owner,
@@ -562,6 +568,7 @@
 	"use strict";
 
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
+		this.source_raw = source;
 		this.source = $(source);
 		this.Cache = Cache ? Cache : new CacheTour.Cache();
 		this.parseBaseData();
@@ -572,8 +579,10 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
+		// console.log('base', this.source);
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
+		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
 		this.Cache.setGcCode(gc_code);
 		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
 		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
@@ -625,20 +634,21 @@
 	};
 
 	CacheParser.prototype.parseLogs = function(limit) {
+		// console.log('logs', this.source.find('script').html());
 		this.Cache.clearLogs();
 		limit = limit || 20;
-		var count = 0;
-		this.source.find('#cache_logs_container .log-row').each(function(key,el) {
-			if (count < limit) {
-				count++;
+		if (this.source_raw.match(/initalLogs\s*=\s*(\{.*\});/)) {
+			var initialLogs = JSON.parse(RegExp.$1).data;
+			for (var i = 0, c = Math.min(limit, initialLogs.length); i < c; i++) {
 				var Log = new CacheTour.Log();
-				Log.setFinder(this.source.find('.logOwnerProfileName a').first().text())
-					.setType(this.source.find('.LogType a img').first().attr('title'))
-					.setDate(this.source.find('.LogDate').first().text())
-					.setText(this.source.find('.LogText').first().html());
+				Log.setId(initialLogs[i].LogID)
+					.setFinder(initialLogs[i].UserName)
+					.setType(initialLogs[i].LogType)
+					.setDate(initialLogs[i].Visited)
+					.setText(CacheTour.escapeHTML(initialLogs[i].LogText));
 				this.Cache.addLog(Log);
 			}
-		}.bind(this));
+		}
 		return this;
 	};
 })();
@@ -647,8 +657,8 @@
 	"use strict";
 
 	var Coordinates = CacheTour.Coordinates = function(latitude, longitude) {
-		this.latitude = latitude;
-		this.longitude = longitude;
+		this.latitude = latitude || 0;
+		this.longitude = longitude || 0;
 	};
 
 	Coordinates.prototype.setLatitude = function(latitude) {
@@ -673,6 +683,10 @@
 		//@todo this method isn't entirely correct for geo-coordinates
 		return Math.sqrt(Math.pow(this.latitude - OtherCoordinates.getLatitude(), 2) + Math.pow(this.longitude - OtherCoordinates.getLongitude(), 2));
 	};
+
+	Coordinates.prototype.toString = function() {
+		return (this.latitude > 0 ? "N " : "S ") + this.latitude + (this.longitude > 0 ? " E " : " W ") + this.longitude;
+	};
 })();
 
 (function(){
@@ -684,7 +698,7 @@
 			'<groundspeak:type><% type %></groundspeak:type>\n' +
 			'<groundspeak:finder><% finder %></groundspeak:finder>\n' +
 			'<groundspeak:text encoded="false"><% text %></groundspeak:text>\n' +
-		'</groundspeak:log>\n';
+		'</groundspeak:log>';
 
 	var Log = window.CacheTour.Log = function() {
 	};
@@ -795,9 +809,10 @@
 	"use strict";
 
 	var template_gpx =
+	'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n' +
 	'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
 		'<name><% name %></name>\n' +
-		'<desc>this is an individual cache generated from geocaching.com</desc>\n' +
+		'<desc><% description %></desc>\n' +
 		'<author>CacheTour</author>\n' +
 		'<url>http://www.geocaching.com</url>\n' +
 		'<urlname>geocaching - high tech treasure hunting</urlname>\n' +
@@ -878,6 +893,14 @@
 		this.fireChange();
 	};
 
+	Tour.prototype.getDescription = function() {
+		return this.description;
+	};
+	Tour.prototype.setDescription = function(description) {
+		this.description = description;
+		this.fireChange();
+	};
+
 	Tour.prototype.onChange = function(callback) {
 		this.change_callback = callback;
 	};
@@ -892,25 +915,56 @@
 		return this.caches;
 	};
 
+	Tour.prototype.getBounds = function() {
+		var min = new CacheTour.Coordinates(999,999),
+			max = new CacheTour.Coordinates();
+		for (var i = 0, c = this.caches.length; i < c; i++) {
+			if (this.caches[i].getCoordinates().getLatitude() < min.getLatitude()) {
+				min.setLatitude(this.caches[i].getCoordinates().getLatitude()); 
+			}
+			if (this.caches[i].getCoordinates().getLatitude() > max.getLatitude()) {
+				max.setLatitude(this.caches[i].getCoordinates().getLatitude()); 
+			}
+
+			if (this.caches[i].getCoordinates().getLongitude() < min.getLongitude()) {
+				min.setLongitude(this.caches[i].getCoordinates().getLongitude()); 
+			}
+			if (this.caches[i].getCoordinates().getLongitude() > max.getLongitude()) {
+				max.setLongitude(this.caches[i].getCoordinates().getLongitude()); 
+			}
+		}
+		return {
+			min: min,
+			max: max
+		};
+	};
+
 	Tour.prototype.toGPX = function() {
 		var cache_promises = [];
 		for (var i = 0, c = this.caches.length; i < c; i++) {
 			cache_promises.push(this.caches[i].toGPX());
 		}
 		return Promise.all(cache_promises).then(function(caches) {
+			var bounds = this.getBounds();
 			return CacheTour.useTemplate(template_gpx, {
 				name: this.name,
-				caches: caches.join('')
+				caches: caches.join(''),
+				minlat: bounds.min.getLatitude(),
+				minlon: bounds.min.getLongitude(),
+				maxlat: bounds.max.getLatitude(),
+				maxlon: bounds.max.getLongitude()
 			});
 		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">'),
 			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
-		header.append($('<div class="cachetour_tour_gpx fa fa-download" title="Download GPX"></div>').click(function() {
-			this.toGPX().then(function(content) {
-				CacheTour.saveFile(this.getName() + ".gpx", content);
-			}.bind(this));
+		header.append($('<div class="cachetour_tour_gpx fa fa-pencil" title="Rename Tour">').click(function() {
+			var new_name = prompt("Enter the name of this Tour", this.name);
+			if (new_name) {
+				this.setName(new_name);
+				CacheTour.saveSettings();
+			}
 		}.bind(this)));
 		element.append(header);
 		for (var i = 0, c = this.caches.length; i < c; i++) {
@@ -921,6 +975,7 @@
 	Tour.prototype.toJSON = function() {
 		var data = {
 			name: this.name,
+			description: this.description,
 			caches: []
 		};
 		for (var i = 0, c = this.caches.length; i < c; i++) {
@@ -1125,6 +1180,16 @@
 .cachetour_cache:last-of-type .cachetour_cache_down {\
 	visibility: hidden;\
 }\
+#cachetour_buttonbar {\
+	border-bottom: 1px dashed lightgray;\
+	margin: 4px 0 8px 0;\
+}\
+#cachetour_buttonbar > div {\
+	margin: 0 3px;\
+	font-size:larger;\
+	cursor: pointer;\
+}\
+\
 \
 ');
 	};
@@ -1183,6 +1248,25 @@
 			}
 		})
 	);
+})();
+
+(function(){
+	"use strict";
+
+	CacheTour.registerModule(
+		new CacheTour.Module({
+			name: 'Add latlng.js',
+			run: function() {
+				if ($('script[src*="latlng.js"]').length===0) {
+					$('<script src="https://www.geocaching.com/js/latlng.js">').appendTo(document.body);
+				}
+			},
+			shouldRun: function() {
+				return true;
+			}
+		})
+	);
+
 })();
 
 CacheTour.initialize();
