@@ -9,29 +9,15 @@
 		tours = [],
 		current_tour = 0;
 
-	function createElement(options, appendTo) {
-		options = options || {};
-		var element = $('<' + (options.tag||'div') + '>');
-		for (var option in options) {
-			if (options.hasOwnProperty(option) && option != "tag") {
-				element.attr(option, options[option]);
-			}
-		}
-		if (appendTo) {
-			$(appendTo).append(element);
-		}
-		return element;
-	}
-
 	function initGui() {
-		createElement({tag:"link", rel: "stylesheet", href:"https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"}, document.body);
+		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
 		createStyles();
 
-		gui = createElement({tag: "div", id: "cachetour_gui"}, document.body);
+		gui = $('<div id="cachetour_gui">').appendTo(document.body);
 		
-		var header = createElement({tag: "div", id: "cachetour_header"}, gui);
-		createElement({tag: "i", "class": "fa fa-archive main-icon"}, header);
-		createElement({tag: "span", id: "cachetour_header"}, header).text("CacheTour");
+		var header = $('<div id="cachetour_header">').appendTo(gui);
+		$('<i class="fa fa-archive main-icon">').appendTo(header);
+		$('<span id="cachetour_header">CacheTour</span>').appendTo(header);
 
 		var pin = $('<div id="cachetour_pin" class="fa-stack">');
 		gui.append(pin);
@@ -45,7 +31,18 @@
 			gui.addClass("cachetour_pinned");
 		}
 
-		tour_wrapper = createElement({tag: "div", id: "cachetour_tour_wrapper"}, gui);
+		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
+		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(function(){
+			CacheTour.getCurrentTour().toGPX().then(function(content) {
+				CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
+			});
+		});
+
+		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
+			console.log("Not implemented yet");
+		});
+
+		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
 		updateCacheList();
 	}
 
