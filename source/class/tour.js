@@ -2,9 +2,10 @@
 	"use strict";
 
 	var template_gpx =
+	'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n' +
 	'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
 		'<name><% name %></name>\n' +
-		'<desc>this is an individual cache generated from geocaching.com</desc>\n' +
+		'<desc><% description %></desc>\n' +
 		'<author>CacheTour</author>\n' +
 		'<url>http://www.geocaching.com</url>\n' +
 		'<urlname>geocaching - high tech treasure hunting</urlname>\n' +
@@ -85,6 +86,14 @@
 		this.fireChange();
 	};
 
+	Tour.prototype.getDescription = function() {
+		return this.description;
+	};
+	Tour.prototype.setDescription = function(description) {
+		this.description = description;
+		this.fireChange();
+	};
+
 	Tour.prototype.onChange = function(callback) {
 		this.change_callback = callback;
 	};
@@ -99,25 +108,56 @@
 		return this.caches;
 	};
 
+	Tour.prototype.getBounds = function() {
+		var min = new CacheTour.Coordinates(999,999),
+			max = new CacheTour.Coordinates();
+		for (var i = 0, c = this.caches.length; i < c; i++) {
+			if (this.caches[i].getCoordinates().getLatitude() < min.getLatitude()) {
+				min.setLatitude(this.caches[i].getCoordinates().getLatitude()); 
+			}
+			if (this.caches[i].getCoordinates().getLatitude() > max.getLatitude()) {
+				max.setLatitude(this.caches[i].getCoordinates().getLatitude()); 
+			}
+
+			if (this.caches[i].getCoordinates().getLongitude() < min.getLongitude()) {
+				min.setLongitude(this.caches[i].getCoordinates().getLongitude()); 
+			}
+			if (this.caches[i].getCoordinates().getLongitude() > max.getLongitude()) {
+				max.setLongitude(this.caches[i].getCoordinates().getLongitude()); 
+			}
+		}
+		return {
+			min: min,
+			max: max
+		};
+	};
+
 	Tour.prototype.toGPX = function() {
 		var cache_promises = [];
 		for (var i = 0, c = this.caches.length; i < c; i++) {
 			cache_promises.push(this.caches[i].toGPX());
 		}
 		return Promise.all(cache_promises).then(function(caches) {
+			var bounds = this.getBounds();
 			return CacheTour.useTemplate(template_gpx, {
 				name: this.name,
-				caches: caches.join('')
+				caches: caches.join(''),
+				minlat: bounds.min.getLatitude(),
+				minlon: bounds.min.getLongitude(),
+				maxlat: bounds.max.getLatitude(),
+				maxlon: bounds.max.getLongitude()
 			});
 		}.bind(this));
 	};
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">'),
 			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
-		header.append($('<div class="cachetour_tour_gpx fa fa-download" title="Download GPX"></div>').click(function() {
-			this.toGPX().then(function(content) {
-				CacheTour.saveFile(this.getName() + ".gpx", content);
-			}.bind(this));
+		header.append($('<div class="cachetour_tour_gpx fa fa-pencil" title="Rename Tour">').click(function() {
+			var new_name = prompt("Enter the name of this Tour", this.name);
+			if (new_name) {
+				this.setName(new_name);
+				CacheTour.saveSettings();
+			}
 		}.bind(this)));
 		element.append(header);
 		for (var i = 0, c = this.caches.length; i < c; i++) {
@@ -128,6 +168,7 @@
 	Tour.prototype.toJSON = function() {
 		var data = {
 			name: this.name,
+			description: this.description,
 			caches: []
 		};
 		for (var i = 0, c = this.caches.length; i < c; i++) {

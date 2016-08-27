@@ -7,7 +7,7 @@
 			'<groundspeak:type><% type %></groundspeak:type>\n' +
 			'<groundspeak:finder><% finder %></groundspeak:finder>\n' +
 			'<groundspeak:text encoded="false"><% text %></groundspeak:text>\n' +
-		'</groundspeak:log>\n';
+		'</groundspeak:log>';
 
 	var Log = window.CacheTour.Log = function() {
 	};

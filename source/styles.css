@@ -172,4 +172,14 @@
 .cachetour_cache:last-of-type .cachetour_cache_down {
 	visibility: hidden;
 }
+#cachetour_buttonbar {
+	border-bottom: 1px dashed lightgray;
+	margin: 4px 0 8px 0;
+}
+#cachetour_buttonbar > div {
+	margin: 0 3px;
+	font-size:larger;
+	cursor: pointer;
+}
+
 
