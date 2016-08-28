@@ -21,14 +21,10 @@
   	  	  "GM_getValue",
   	  	  "GM_setValue",
   	  	  "GM_deleteValue",
-  	  	  "GM_log",
-  	  	  "GM_addStyle",
-  	  	  "GM_xmlhttpRequest",
-  	  	  "GM_getResourceText",
-  	  	  "GM_getResourceURL"
+  	  	  "GM_addStyle"
   	  ],
   	  "require" : [
-  	  	  "https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js"
+  	  	  "https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"
       ],
   	  "update_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.version.js",
   	  "download_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.user.js",

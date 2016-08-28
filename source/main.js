@@ -5,6 +5,8 @@
 		settings,
 		gui,
 		tour_wrapper,
+		mask,
+		mask_message,
 		styles = [],
 		tours = [],
 		current_tour = 0;
@@ -33,9 +35,15 @@
 
 		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
 		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(function(){
-			CacheTour.getCurrentTour().toGPX().then(function(content) {
+			var count = CacheTour.getCurrentTour().getCaches().length;
+			showMask('Creating GPX<br />0 of ' + count + ' Caches done');
+			CacheTour.getCurrentTour().toGPX(function(phase, state, index){
+				if (phase === 'cache' && state === 'done') {
+					showMask('Creating GPX<br />' + (index + 1) + ' of ' + count + ' Caches done');
+				}
+			}).then(function(content) {
 				CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
-			});
+			}).then(hideMask);
 		});
 
 		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
@@ -48,6 +56,22 @@
 
 	function createStyles() {
 		GM_addStyle(styles.join("\n"));
+	}
+	
+	function showMask(message) {
+		if (!mask) {
+			mask = $('<div id="cachetour_mask">').appendTo(document.body);
+			$('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">').appendTo(mask);
+			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
+		}
+		mask_message.html(message || 'Please wait...');
+		mask.removeClass('hidden');
+	}
+
+	function hideMask() {
+		if (mask) {
+			mask.addClass('hidden');
+		}
 	}
 
 	function updateCacheList() {
@@ -173,7 +197,9 @@
 		},
 		escapeHTML: function(html) {
 			return $('<div>').text(html).html();
-		}
+		},
+		showMask: showMask,
+		hideMask: hideMask
 	};
 	
 })();

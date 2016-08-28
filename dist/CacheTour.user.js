@@ -15,12 +15,8 @@
 // @grant         GM_getValue
 // @grant         GM_setValue
 // @grant         GM_deleteValue
-// @grant         GM_log
 // @grant         GM_addStyle
-// @grant         GM_xmlhttpRequest
-// @grant         GM_getResourceText
-// @grant         GM_getResourceURL
-// @require       https://raw.githubusercontent.com/eligrey/FileSaver.js/master/FileSaver.min.js
+// @require       https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js
 // ==/UserScript==
 
 (function(){
@@ -30,6 +26,8 @@
 		settings,
 		gui,
 		tour_wrapper,
+		mask,
+		mask_message,
 		styles = [],
 		tours = [],
 		current_tour = 0;
@@ -58,9 +56,15 @@
 
 		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
 		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(function(){
-			CacheTour.getCurrentTour().toGPX().then(function(content) {
+			var count = CacheTour.getCurrentTour().getCaches().length;
+			showMask('Creating GPX<br />0 of ' + count + ' Caches done');
+			CacheTour.getCurrentTour().toGPX(function(phase, state, index){
+				if (phase === 'cache' && state === 'done') {
+					showMask('Creating GPX<br />' + (index + 1) + ' of ' + count + ' Caches done');
+				}
+			}).then(function(content) {
 				CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
-			});
+			}).then(hideMask);
 		});
 
 		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
@@ -73,6 +77,22 @@
 
 	function createStyles() {
 		GM_addStyle(styles.join("\n"));
+	}
+	
+	function showMask(message) {
+		if (!mask) {
+			mask = $('<div id="cachetour_mask">').appendTo(document.body);
+			$('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">').appendTo(mask);
+			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
+		}
+		mask_message.html(message || 'Please wait...');
+		mask.removeClass('hidden');
+	}
+
+	function hideMask() {
+		if (mask) {
+			mask.addClass('hidden');
+		}
 	}
 
 	function updateCacheList() {
@@ -198,7 +218,9 @@
 		},
 		escapeHTML: function(html) {
 			return $('<div>').text(html).html();
-		}
+		},
+		showMask: showMask,
+		hideMask: hideMask
 	};
 	
 })();
@@ -939,13 +961,19 @@
 		};
 	};
 
-	Tour.prototype.toGPX = function() {
+	Tour.prototype.toGPX = function(on_progress) {
 		var cache_promises = [];
+		on_progress = on_progress || function(){};
+		on_progress('tour', 'start');
 		for (var i = 0, c = this.caches.length; i < c; i++) {
-			cache_promises.push(this.caches[i].toGPX());
+			on_progress('cache', 'start', i);
+			cache_promises.push(this.caches[i].toGPX().then(on_progress.bind(null, 'cache', 'done', i)));
 		}
 		return Promise.all(cache_promises).then(function(caches) {
+			on_progress('tour', 'caches_done');
 			var bounds = this.getBounds();
+
+			on_progress('tour', 'done');
 			return CacheTour.useTemplate(template_gpx, {
 				name: this.name,
 				caches: caches.join(''),
@@ -1190,6 +1218,41 @@
 	cursor: pointer;\
 }\
 \
+#cachetour_mask {\
+	position: fixed;\
+	top:0;\
+	bottom:0;\
+	left:0;\
+	right:0;\
+	background-color: rgba(68, 68, 68, .8);\
+	z-index: 999;\
+}\
+\
+.hidden {\
+	display:none !important;\
+}\
+#cachetour_mask > .fa {\
+	position: absolute;\
+    top: 50%;\
+    width:100%;\
+    color: white;\
+}\
+#cachetour_mask > .fa::before {\
+	position: absolute;\
+    transform: translate(-50%, -50%);\
+}\
+#cachetour_mask_message {\
+	position: absolute;\
+	left:50%;\
+	top:50%;\
+	transform: translate(-50%, 100%);\
+	color:white;\
+	font-size: x-large;\
+	background: rgba(68, 68, 68, 1);\
+    padding: 12px 14px;\
+    border-radius: 12px;\
+    text-align: center;\
+}\
 \
 ');
 	};

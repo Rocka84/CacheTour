@@ -132,13 +132,19 @@
 		};
 	};
 
-	Tour.prototype.toGPX = function() {
+	Tour.prototype.toGPX = function(on_progress) {
 		var cache_promises = [];
+		on_progress = on_progress || function(){};
+		on_progress('tour', 'start');
 		for (var i = 0, c = this.caches.length; i < c; i++) {
-			cache_promises.push(this.caches[i].toGPX());
+			on_progress('cache', 'start', i);
+			cache_promises.push(this.caches[i].toGPX().then(on_progress.bind(null, 'cache', 'done', i)));
 		}
 		return Promise.all(cache_promises).then(function(caches) {
+			on_progress('tour', 'caches_done');
 			var bounds = this.getBounds();
+
+			on_progress('tour', 'done');
 			return CacheTour.useTemplate(template_gpx, {
 				name: this.name,
 				caches: caches.join(''),
