@@ -32,8 +32,12 @@
 		tours = [],
 		current_tour = 0;
 
-	function initGui() {
+	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
+		$('<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js">').appendTo(document.body);
+	}
+
+	function initGui() {
 		createStyles();
 
 		gui = $('<div id="cachetour_gui">').appendTo(document.body);
@@ -132,6 +136,7 @@
 				try {
 					modules[i].init();
 				} catch (exception) {
+					console.error('Exception while initializing module', modules[i].getName());
 					console.error(exception);
 				}
 			}
@@ -145,6 +150,7 @@
 				try {
 					modules[i].run();
 				} catch (exception) {
+					console.error('Exception in module', modules[i].getName());
 					console.error(exception);
 				}
 			}
@@ -159,6 +165,7 @@
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
 		initialize: function() {
 			loadSettings();
+			initDependencies();
 			initModules();
 			loadTours();
 			initGui();
@@ -1046,8 +1053,11 @@
 	border-radius: 5px 0 0 5px;\
 	background: white;\
 	padding: 6px 10px;\
-	z-index:1000;\
+	z-index:1100;\
 	overflow: hidden;\
+}\
+#cachetour_gui, #cachetour_gui * {\
+	box-sizing: content-box;\
 }\
 #cachetour_gui:hover, #cachetour_gui.cachetour_pinned {\
 	width: 280px;\
@@ -1225,7 +1235,7 @@
 	left:0;\
 	right:0;\
 	background-color: rgba(68, 68, 68, .8);\
-	z-index: 999;\
+	z-index: 1099;\
 }\
 \
 .hidden {\
@@ -1245,7 +1255,7 @@
 	position: absolute;\
 	left:50%;\
 	top:50%;\
-	transform: translate(-50%, 100%);\
+	transform: translate(-50%, 32px);\
 	color:white;\
 	font-size: x-large;\
 	background: rgba(68, 68, 68, 1);\
@@ -1261,6 +1271,17 @@
 
 (function(){
 	"use strict";
+
+	CacheTour.addCacheToCurrentTour = function(gc_code, name, size, difficulty, terrain) {
+		CacheTour.getCurrentTour().addCache(
+				(new CacheTour.Cache(gc_code))
+				.setName(name)
+				.setSize(size.toLowerCase())
+				.setDifficulty(difficulty)
+				.setTerrain(terrain)
+				);
+	};
+
 	CacheTour.registerModule(
 		new CacheTour.Module({
 			name: 'Map',
@@ -1271,11 +1292,11 @@
 				CacheTour.addStyle('#cachetour_gui { top:20%; }');
 				CacheTour.addStyle('#cachetour_gui:hover { height:75%; }');
 
-				var template = document.getElementById("cacheDetailsTemplate");
+				var template = $("#cacheDetailsTemplate");
 				template.html(template.html().replace(
 					/<span>Log Visit<\/span>/,
 					"<span>Log Visit</span></a>\n" +
-					"<a class=\"lnk cachetour-add\" href=\"#\" onclick=\"CacheTour.addCacheToCurrentTour('{{=gc}}','{{=name}}');return false;\">\n" +
+					"<a class=\"lnk cachetour-add\" href=\"#\" onclick=\"CacheTour.addCacheToCurrentTour('{{=gc}}', '{{=name}}', '{{=container.text}}', '{{=difficulty.text}}', '{{=terrain.text}}');return false;\">\n" +
 					"<img src=\"/images/icons/16/write_log.png\"><span>Add to Tour</span>"
 				));
 			}

@@ -10,8 +10,11 @@
 	border-radius: 5px 0 0 5px;
 	background: white;
 	padding: 6px 10px;
-	z-index:1000;
+	z-index:1100;
 	overflow: hidden;
+}
+#cachetour_gui, #cachetour_gui * {
+	box-sizing: content-box;
 }
 #cachetour_gui:hover, #cachetour_gui.cachetour_pinned {
 	width: 280px;
@@ -189,7 +192,7 @@
 	left:0;
 	right:0;
 	background-color: rgba(68, 68, 68, .8);
-	z-index: 999;
+	z-index: 1099;
 }
 
 .hidden {
@@ -209,7 +212,7 @@
 	position: absolute;
 	left:50%;
 	top:50%;
-	transform: translate(-50%, 100%);
+	transform: translate(-50%, 32px);
 	color:white;
 	font-size: x-large;
 	background: rgba(68, 68, 68, 1);

@@ -11,8 +11,12 @@
 		tours = [],
 		current_tour = 0;
 
-	function initGui() {
+	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
+		$('<script src="https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js">').appendTo(document.body);
+	}
+
+	function initGui() {
 		createStyles();
 
 		gui = $('<div id="cachetour_gui">').appendTo(document.body);
@@ -111,6 +115,7 @@
 				try {
 					modules[i].init();
 				} catch (exception) {
+					console.error('Exception while initializing module', modules[i].getName());
 					console.error(exception);
 				}
 			}
@@ -124,6 +129,7 @@
 				try {
 					modules[i].run();
 				} catch (exception) {
+					console.error('Exception in module', modules[i].getName());
 					console.error(exception);
 				}
 			}
@@ -138,6 +144,7 @@
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
 		initialize: function() {
 			loadSettings();
+			initDependencies();
 			initModules();
 			loadTours();
 			initGui();
