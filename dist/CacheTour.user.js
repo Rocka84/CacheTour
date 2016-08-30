@@ -772,7 +772,7 @@
 				date: this.date,
 				type: this.type,
 				finder: this.finder,
-				text: CacheTour.escapeHTML(this.text)
+				text: this.text
 			}));
 		}.bind(this));
 	};
