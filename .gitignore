@@ -1,5 +1,5 @@
 node_modules/*
-*.swp
+\.*.sw*
 dist/*.dev_header.*
-source/modules/001.styles.js
+source/modules/010.styles.js
 tags

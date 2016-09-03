@@ -79,10 +79,12 @@
 	counter-reset: tour;
 }
 
-#cachetour_tour_select_btn {
+#cachetour_select_wrapper {
 	position:absolute;
 	top:0;
 	left:0;
+}
+#cachetour_tour_select_btn {
 	font-size: large;
     line-height: inherit;
     cursor:pointer;

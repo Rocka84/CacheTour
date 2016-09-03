@@ -57,7 +57,7 @@ module.exports = function (grunt) {
 	grunt.task.registerTask("create_js_from_css",function() {
 		console.log("Don't look at me, I'm ugly!");
 		var css = grunt.file.read("source/styles.css").split("\n").join("\\\n");
-		return createFromTemplateFile("source/modules/001.styles.js", "templates/styles.js.tpl", {css: css});
+		return createFromTemplateFile("source/modules/010.styles.js", "templates/styles.js.tpl", {css: css});
 	});
 
 	grunt.task.registerTask("dist", ["create_js_from_css", "concat:dist", "create_version_file"]);
