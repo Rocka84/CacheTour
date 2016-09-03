@@ -40,6 +40,7 @@
 
 #cachetour_tour_wrapper {
 	border-radius:2px;
+	position:relative;
 }
 #cachetour_tour_wrapper:empty {
     text-align: center;
@@ -78,6 +79,14 @@
 	counter-reset: tour;
 }
 
+#cachetour_tour_select_btn {
+	position:absolute;
+	top:0;
+	left:0;
+	font-size: large;
+    line-height: inherit;
+    cursor:pointer;
+}
 .cachetour_tour_header {
 	font-size: larger;
 	border-bottom: 1px solid black;
@@ -85,6 +94,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	position:relative;
+	padding: 0 1.5em;
 }
 .cachetour_tour_gpx {
 	position: absolute;
@@ -99,6 +109,12 @@
 	margin-top: 6px;
 	padding: 3px 6px 3px 36px;
 	position:relative;
+}
+.cachetour_working .cachetour_cache {
+	background-color: #DCDCDC;
+}
+.cachetour_working .cachetour_cache.cachetour_done {
+	background-color: #D7FFD7;
 }
 .cachetour_cache_name {
 	overflow: hidden;

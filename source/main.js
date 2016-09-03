@@ -5,6 +5,7 @@
 		settings,
 		gui,
 		tour_wrapper,
+		tour_select_btn,
 		mask,
 		mask_message,
 		styles = [],
@@ -39,15 +40,24 @@
 
 		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
 		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(function(){
-			var count = CacheTour.getCurrentTour().getCaches().length;
+			var count = CacheTour.getCurrentTour().getCaches().length,
+				cache_pos = 0;
+
+			gui.addClass('cachetour_working');
 			showMask('Creating GPX<br />0 of ' + count + ' Caches done');
+
 			CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 				if (phase === 'cache' && state === 'done') {
-					showMask('Creating GPX<br />' + (index + 1) + ' of ' + count + ' Caches done');
+					cache_pos++;
+					$('.cachetour_cache').eq(index).addClass('cachetour_done');
+					showMask('Creating GPX<br />' + (cache_pos) + ' of ' + count + ' Caches done');
 				}
 			}).then(function(content) {
 				CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
-			}).then(hideMask);
+			}).then(function(){
+				hideMask();
+				gui.removeClass('cachetour_working');
+			});
 		});
 
 		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
@@ -55,6 +65,7 @@
 		});
 
 		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
+		tour_select_btn = $('<i class="fa fa-caret-square-o-down" id="cachetour_tour_select_btn">');
 		updateCacheList();
 	}
 
@@ -79,7 +90,7 @@
 	}
 
 	function updateCacheList() {
-		tour_wrapper.empty().append(CacheTour.getCurrentTour().toElement());
+		tour_wrapper.empty().append(tour_select_btn).append(CacheTour.getCurrentTour().toElement());
 		return CacheTour;
 	}
 
@@ -106,6 +117,13 @@
 			CacheTour.addNewTour();
 		}
 		return CacheTour;
+	}
+
+	function selectTour(index) {
+		if (index >= 0 && index < tours.length-1) {
+			current_tour = index;
+			updateCacheList();
+		}
 	}
 
 	function initModules() {

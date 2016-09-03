@@ -19,7 +19,7 @@
 			},
 			init: function() {
 				CacheTour.addStyle('#cachetour_gui { top:20%; }');
-				CacheTour.addStyle('#cachetour_gui:hover { height:75%; }');
+				CacheTour.addStyle('#cachetour_gui:hover, #cachetour_gui.cachetour_pinned { height:75%; }');
 
 				var template = $("#cacheDetailsTemplate");
 				template.html(template.html().replace(

@@ -133,12 +133,16 @@
 	};
 
 	Tour.prototype.toGPX = function(on_progress) {
-		var cache_promises = [];
+		var cache_promises = [],
+		cache_done = function(gpx){
+			on_progress('cache', 'done', i);
+			return gpx;
+		};
 		on_progress = on_progress || function(){};
 		on_progress('tour', 'start');
 		for (var i = 0, c = this.caches.length; i < c; i++) {
 			on_progress('cache', 'start', i);
-			cache_promises.push(this.caches[i].toGPX().then(on_progress.bind(null, 'cache', 'done', i)));
+			cache_promises.push(this.caches[i].toGPX().then(cache_done));
 		}
 		return Promise.all(cache_promises).then(function(caches) {
 			on_progress('tour', 'caches_done');
