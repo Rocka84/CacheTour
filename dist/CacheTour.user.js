@@ -39,6 +39,8 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
+		current_tour = settings.current_tour || 0;
+		console.log('settings', settings);
 		return CacheTour;
 	}
 
@@ -60,13 +62,6 @@
 			CacheTour.addNewTour();
 		}
 		return CacheTour;
-	}
-
-	function selectTour(index) {
-		if (index >= 0 && index < tours.length) {
-			current_tour = index;
-			CacheTour.Gui.setTour(tours[current_tour]);
-		}
 	}
 
 	function initModules() {
@@ -105,8 +100,8 @@
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
 		initialize: function() {
 			initDependencies();
-			loadSettings();
 			loadTours();
+			loadSettings();
 
 			initModules();
 			createStyles();
@@ -122,14 +117,22 @@
 		},
 		addTour: function(Tour) {
 			Tour.onChange(tourChanged);
+			current_tour = tours.length;
 			tours.push(Tour);
+			// tourChanged();
+			return CacheTour;
+		},
+		setTourIndex: function(index) {
+			current_tour = index;
+			CacheTour.Gui.setTour(CacheTour.getCurrentTour());
+			CacheTour.saveSettings();
 			return CacheTour;
 		},
 		getCurrentTour: function() {
 			return tours[current_tour];
 		},
 		getTours: function() {
-			return this.tours;
+			return tours;
 		},
 		getTour: function(id) {
 			return this.tours[id];
@@ -160,6 +163,7 @@
 			return dont_save ? CacheTour : CacheTour.saveSettings();
 		},
 		saveSettings: function() {
+			settings.current_tour = current_tour;
 			GM_setValue("settings", JSON.stringify(settings));
 			return CacheTour;
 		},
@@ -940,7 +944,7 @@
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">'),
 			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
-		header.append($('<div class="cachetour_tour_gpx fa fa-pencil" title="Rename Tour">').click(function() {
+		header.append($('<div class="cachetour_tour_rename fa fa-pencil" title="Rename Tour">').click(function() {
 			var new_name = prompt("Enter the name of this Tour", this.name);
 			if (new_name) {
 				this.setName(new_name);
@@ -980,6 +984,7 @@
 	var gui,
 		tour_wrapper,
 		tour_select_wrapper,
+		tour_select,
 		tour,
 		mask,
 		mask_message;
@@ -1017,7 +1022,9 @@
 		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(downloadGPX);
 
 		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
-			console.log("Not implemented yet");
+			var tour = new CacheTour.Tour();
+			tour.setName(prompt('Choose a name', tour.getName()));
+			CacheTour.addTour(tour);
 		});
 
 		initTourSelect();
@@ -1030,20 +1037,22 @@
 		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
 		tour_select_wrapper = $('<div id="cachetour_select_wrapper">');
 		$('<div class="fa fa-caret-square-o-down" id="cachetour_tour_select_btn">').appendTo(tour_select_wrapper);
+		gui.delegate('#cachetour_tour_select_btn', 'click', toggleTourSelect);
+		tour_select = $('<div id="cachetour_select">').appendTo(tour_select_wrapper);
 	}
  	
  	function downloadGPX() {
 		var count = CacheTour.getCurrentTour().getCaches().length,
-			cache_pos = 0;
+			caches_done = 0;
 
 		gui.addClass('cachetour_working');
 		Gui.showMask('Creating GPX<br />0 of ' + count + ' Caches done');
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
-				cache_pos++;
+				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask('Creating GPX<br />' + (cache_pos) + ' of ' + count + ' Caches done');
+				Gui.showMask('Creating GPX<br />' + caches_done + ' of ' + count + ' Caches done');
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
@@ -1078,14 +1087,36 @@
 
 	Gui.updateCacheList = function() {
 		tour_wrapper.empty()
-			.append(tour_select_wrapper)
-			.append(tour.toElement());
+			.append(tour.toElement())
+			.append(tour_select_wrapper);
 		return Gui;
 	};
 	
 	function showTourSelect() {
-		// tour_select_wrapper;
+		tour_select.empty();
+		var tours = CacheTour.getTours();
+		for (var i = 0, c = tours.length; i < c; i++) {
+			$('<div class="cachetour_select_item" data-index="' + i + '">' + tours[i].getName() + '</div>').appendTo(tour_select);
+		}
+		tour_select.delegate('.cachetour_select_item', 'click', function(target) {
+			CacheTour.setTourIndex($(this).attr('data-index'));
+			hideTourSelect();
+		});
+		tour_select_wrapper.addClass('cachetour_show');
 		return Gui;
+	}
+
+	function hideTourSelect() {
+		tour_select_wrapper.removeClass('cachetour_show');
+		return Gui;
+	}
+
+	function toggleTourSelect() {
+		if (tour_select_wrapper.hasClass('cachetour_show')) {
+			hideTourSelect();
+		} else {
+			showTourSelect();
+		}
 	}
 
 	CacheTour.registerModule(Gui);
@@ -1209,6 +1240,7 @@
 	position:absolute;\
 	top:0;\
 	left:0;\
+	width: 100%;\
 }\
 #cachetour_tour_select_btn {\
 	font-size: large;\
@@ -1224,11 +1256,12 @@
 	position:relative;\
 	padding: 0 1.5em;\
 }\
-.cachetour_tour_gpx {\
+.cachetour_tour_rename {\
 	position: absolute;\
 	right: 0.3em;\
 	top: 0.3em;\
 	cursor: pointer;\
+	z-index:1100;\
 }\
 \
 .cachetour_cache {\
@@ -1363,6 +1396,29 @@
     padding: 12px 14px;\
     border-radius: 12px;\
     text-align: center;\
+}\
+#cachetour_select {\
+	background: white;\
+    font-size: larger;\
+    padding: 6px;\
+    border: 1px solid black;\
+    border-radius: 6px;\
+    display:none;\
+}\
+#cachetour_select_wrapper.cachetour_show #cachetour_select {\
+	display:block;\
+}\
+.cachetour_select_item {\
+	border: 1px dashed #DCDCDC;\
+    border-radius: 4px;\
+    padding: 2px 4px;\
+    cursor: pointer;\
+}\
+.cachetour_select_item + .cachetour_select_item {\
+	margin-top:4px;\
+}\
+.cachetour_select_item:hover {\
+	border-color: black;\
 }\
 \
 ');

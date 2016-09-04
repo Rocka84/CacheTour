@@ -4,6 +4,7 @@
 	var gui,
 		tour_wrapper,
 		tour_select_wrapper,
+		tour_select,
 		tour,
 		mask,
 		mask_message;
@@ -41,7 +42,9 @@
 		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(downloadGPX);
 
 		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
-			console.log("Not implemented yet");
+			var tour = new CacheTour.Tour();
+			tour.setName(prompt('Choose a name', tour.getName()));
+			CacheTour.addTour(tour);
 		});
 
 		initTourSelect();
@@ -54,20 +57,22 @@
 		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
 		tour_select_wrapper = $('<div id="cachetour_select_wrapper">');
 		$('<div class="fa fa-caret-square-o-down" id="cachetour_tour_select_btn">').appendTo(tour_select_wrapper);
+		gui.delegate('#cachetour_tour_select_btn', 'click', toggleTourSelect);
+		tour_select = $('<div id="cachetour_select">').appendTo(tour_select_wrapper);
 	}
  	
  	function downloadGPX() {
 		var count = CacheTour.getCurrentTour().getCaches().length,
-			cache_pos = 0;
+			caches_done = 0;
 
 		gui.addClass('cachetour_working');
 		Gui.showMask('Creating GPX<br />0 of ' + count + ' Caches done');
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
-				cache_pos++;
+				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask('Creating GPX<br />' + (cache_pos) + ' of ' + count + ' Caches done');
+				Gui.showMask('Creating GPX<br />' + caches_done + ' of ' + count + ' Caches done');
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
@@ -102,14 +107,36 @@
 
 	Gui.updateCacheList = function() {
 		tour_wrapper.empty()
-			.append(tour_select_wrapper)
-			.append(tour.toElement());
+			.append(tour.toElement())
+			.append(tour_select_wrapper);
 		return Gui;
 	};
 	
 	function showTourSelect() {
-		// tour_select_wrapper;
+		tour_select.empty();
+		var tours = CacheTour.getTours();
+		for (var i = 0, c = tours.length; i < c; i++) {
+			$('<div class="cachetour_select_item" data-index="' + i + '">' + tours[i].getName() + '</div>').appendTo(tour_select);
+		}
+		tour_select.delegate('.cachetour_select_item', 'click', function(target) {
+			CacheTour.setTourIndex($(this).attr('data-index'));
+			hideTourSelect();
+		});
+		tour_select_wrapper.addClass('cachetour_show');
 		return Gui;
+	}
+
+	function hideTourSelect() {
+		tour_select_wrapper.removeClass('cachetour_show');
+		return Gui;
+	}
+
+	function toggleTourSelect() {
+		if (tour_select_wrapper.hasClass('cachetour_show')) {
+			hideTourSelect();
+		} else {
+			showTourSelect();
+		}
 	}
 
 	CacheTour.registerModule(Gui);

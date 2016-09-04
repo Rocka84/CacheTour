@@ -18,6 +18,8 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
+		current_tour = settings.current_tour || 0;
+		console.log('settings', settings);
 		return CacheTour;
 	}
 
@@ -39,13 +41,6 @@
 			CacheTour.addNewTour();
 		}
 		return CacheTour;
-	}
-
-	function selectTour(index) {
-		if (index >= 0 && index < tours.length) {
-			current_tour = index;
-			CacheTour.Gui.setTour(tours[current_tour]);
-		}
 	}
 
 	function initModules() {
@@ -84,8 +79,8 @@
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
 		initialize: function() {
 			initDependencies();
-			loadSettings();
 			loadTours();
+			loadSettings();
 
 			initModules();
 			createStyles();
@@ -101,14 +96,22 @@
 		},
 		addTour: function(Tour) {
 			Tour.onChange(tourChanged);
+			current_tour = tours.length;
 			tours.push(Tour);
+			// tourChanged();
+			return CacheTour;
+		},
+		setTourIndex: function(index) {
+			current_tour = index;
+			CacheTour.Gui.setTour(CacheTour.getCurrentTour());
+			CacheTour.saveSettings();
 			return CacheTour;
 		},
 		getCurrentTour: function() {
 			return tours[current_tour];
 		},
 		getTours: function() {
-			return this.tours;
+			return tours;
 		},
 		getTour: function(id) {
 			return this.tours[id];
@@ -139,6 +142,7 @@
 			return dont_save ? CacheTour : CacheTour.saveSettings();
 		},
 		saveSettings: function() {
+			settings.current_tour = current_tour;
 			GM_setValue("settings", JSON.stringify(settings));
 			return CacheTour;
 		},
