@@ -1,0 +1,15 @@
+(function() {
+	"use strict";
+
+	CacheTour.registerLocale('de', {
+		download_gpx_file: "GPX-Datei herunterladen",
+		download_gpx_progess: "Erstelle GPX<br />%done% von %count% Caches erledigt",
+		add_new_tour: "Tour hinzufügen",
+		choose_name: "Name wählen",
+		please_wait: "Bitte warten...",
+		select_tour: "Tour auswählen",
+		rename_tour: "Tour umbenennen",
+		keep_expanded: "Immer ausgeklappt"
+	});
+})();
+

@@ -15,7 +15,7 @@ module.exports = function (grunt) {
 				banner: grunt.file.read("templates/header.js.tpl"),
 			},
 			dist: {
-				src: ["source/main.js", "source/class/*", "source/modules/*.js", "source/initialize.js"],
+				src: ["source/main.js", "source/class/*.js", "source/modules/*.js", "l10n/*.js", "source/initialize.js"],
 				dest: "dist/<%= pkg.name %>.user.js"
 			}
 		},
@@ -24,7 +24,7 @@ module.exports = function (grunt) {
 				nospawn: true
 			},
 			src: {
-				files: ["source/*.js", "source/styles.css", "source/modules/*.js", "source/class/*.js"],
+				files: ["source/*.js", "source/styles.css", "source/modules/*.js", "source/class/*.js", "l10n/*.js"],
 				tasks: ["jshint:src", "dist"]
 			},
 			grunt: {

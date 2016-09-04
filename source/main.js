@@ -5,7 +5,9 @@
 		settings,
 		styles = [],
 		tours = [],
-		current_tour = 0;
+		current_tour = 0,
+		locales = [],
+		locale = 'de';
 
 	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
@@ -18,8 +20,7 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
-		current_tour = settings.current_tour || 0;
-		console.log('settings', settings);
+		current_tour = Math.min(settings.current_tour -1 || 0, tours.length);
 		return CacheTour;
 	}
 
@@ -40,6 +41,7 @@
 		if (tours.length === 0) {
 			CacheTour.addNewTour();
 		}
+		console.log('tours', tours);
 		return CacheTour;
 	}
 
@@ -152,6 +154,18 @@
 		},
 		escapeHTML: function(html) {
 			return $('<div>').text(html).html();
+		},
+		registerLocale: function(language, strings) {
+			locales[language] = strings;
+		},
+		setLocale: function(_locale) {
+			locale = _locale;
+		},
+		l10n: function(key) {
+			if (locale !== 'en' && !locales[locale][key]) {
+				return locales.en[key];
+			}
+			return locales[locale][key];
 		}
 	};
 	

@@ -26,7 +26,9 @@
 		settings,
 		styles = [],
 		tours = [],
-		current_tour = 0;
+		current_tour = 0,
+		locales = [],
+		locale = 'de';
 
 	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
@@ -39,8 +41,7 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
-		current_tour = settings.current_tour || 0;
-		console.log('settings', settings);
+		current_tour = Math.min(settings.current_tour -1 || 0, tours.length);
 		return CacheTour;
 	}
 
@@ -61,6 +62,7 @@
 		if (tours.length === 0) {
 			CacheTour.addNewTour();
 		}
+		console.log('tours', tours);
 		return CacheTour;
 	}
 
@@ -173,6 +175,18 @@
 		},
 		escapeHTML: function(html) {
 			return $('<div>').text(html).html();
+		},
+		registerLocale: function(language, strings) {
+			locales[language] = strings;
+		},
+		setLocale: function(_locale) {
+			locale = _locale;
+		},
+		l10n: function(key) {
+			if (locale !== 'en' && !locales[locale][key]) {
+				return locales.en[key];
+			}
+			return locales[locale][key];
 		}
 	};
 	
@@ -314,6 +328,18 @@
 						'<groundspeak:logs>\n<% logs %>\n</groundspeak:logs>\n'+
 				'</groundspeak:cache>\n'+
 		'</wpt>';
+
+	var types = {
+		traditional: {
+			icon: "/images/WptTypes/2.gif"
+		},
+		multi: {
+			icon: "/images/WptTypes/3.gif"
+		},
+		mystery: {
+			icon: "/images/WptTypes/8.gif"
+		}
+	};
 
 	var Cache = window.CacheTour.Cache = function(gc_code) {
 		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
@@ -496,6 +522,7 @@
 	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');
+		element.append($('<img class="cachetour_cache_icon" src="' + types[this.type].icon + '">'));
 		element.append($('<div class="cachetour_cache_name"><a href="' + this.getLink() + '">' + this.name + '</a></div>'));
 		element.append($('<div class="cachetour_cache_code">' + this.gc_code + '</div>'));
 		element.append($('<div class="cachetour_cache_difficulty">' + this.difficulty + '</div>'));
@@ -559,7 +586,7 @@
 
 		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
 		this.Cache.setGcCode(gc_code);
-		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
+		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|[\- ])[Cc]ache/, '').toLowerCase());
 		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
 		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
 		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
@@ -944,8 +971,8 @@
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">'),
 			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
-		header.append($('<div class="cachetour_tour_rename fa fa-pencil" title="Rename Tour">').click(function() {
-			var new_name = prompt("Enter the name of this Tour", this.name);
+		header.append($('<div class="cachetour_tour_rename fa fa-pencil" title="' + CacheTour.l10n('rename_tour') + '">').click(function() {
+			var new_name = prompt(CacheTour.l10n('choose_name'), this.name);
 			if (new_name) {
 				this.setName(new_name);
 				CacheTour.saveSettings();
@@ -1006,7 +1033,7 @@
 		$('<i class="fa fa-archive main-icon">').appendTo(header);
 		$('<span id="cachetour_header">CacheTour</span>').appendTo(header);
 
-		var pin = $('<div id="cachetour_pin" class="fa-stack">');
+		var pin = $('<div id="cachetour_pin" class="fa-stack" title="' + CacheTour.l10n('keep_expanded') + '">');
 		gui.append(pin);
 		pin.append($('<div class="fa fa-thumb-tack fa-stack-1x">'));
 		pin.append($('<div class="fa fa-ban fa-stack-2x">'));
@@ -1019,12 +1046,15 @@
 		}
 
 		var buttonbar = $('<div id="cachetour_buttonbar">').appendTo(gui);
-		$('<div class="fa fa-download" title="Download current Tour as GPX file">').appendTo(buttonbar).click(downloadGPX);
+		$('<div class="fa fa-download" title="' + CacheTour.l10n('download_gpx_file') + '">').appendTo(buttonbar).click(downloadGPX);
 
-		$('<div class="fa fa-plus" title="Add another Tour">').appendTo(buttonbar).click(function(){
-			var tour = new CacheTour.Tour();
-			tour.setName(prompt('Choose a name', tour.getName()));
-			CacheTour.addTour(tour);
+		$('<div class="fa fa-plus" title="' + CacheTour.l10n('add_new_tour') + '">').appendTo(buttonbar).click(function(){
+			var tour = new CacheTour.Tour(),
+				new_name = prompt(CacheTour.l10n('choose_name'), tour.getName());
+			if (new_name) {
+				tour.setName();
+				CacheTour.addTour(tour);
+			}
 		});
 
 		initTourSelect();
@@ -1036,7 +1066,7 @@
  	function initTourSelect() {
 		tour_wrapper = $('<div id="cachetour_tour_wrapper">').appendTo(gui);
 		tour_select_wrapper = $('<div id="cachetour_select_wrapper">');
-		$('<div class="fa fa-caret-square-o-down" id="cachetour_tour_select_btn">').appendTo(tour_select_wrapper);
+		$('<div class="fa fa-caret-square-o-down" id="cachetour_tour_select_btn" title="' + CacheTour.l10n('select_tour') + '">').appendTo(tour_select_wrapper);
 		gui.delegate('#cachetour_tour_select_btn', 'click', toggleTourSelect);
 		tour_select = $('<div id="cachetour_select">').appendTo(tour_select_wrapper);
 	}
@@ -1046,13 +1076,13 @@
 			caches_done = 0;
 
 		gui.addClass('cachetour_working');
-		Gui.showMask('Creating GPX<br />0 of ' + count + ' Caches done');
+		Gui.showMask(CacheTour.l10n('add_new_tour').replace('%pos%', '0').replace('%count%', count));
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
 				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask('Creating GPX<br />' + caches_done + ' of ' + count + ' Caches done');
+				Gui.showMask(CacheTour.l10n('add_new_tour').replace('%pos%', caches_done).replace('%count%', count));
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
@@ -1068,7 +1098,7 @@
 			$('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">').appendTo(mask);
 			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
 		}
-		mask_message.html(message || 'Please wait...');
+		mask_message.html(message || CacheTour.l10n('please_wait'));
 		mask.removeClass('hidden');
 		return Gui;
 	};
@@ -1163,7 +1193,7 @@
 	height:24px;\
 	border-style: solid;\
 	border-width: 2px 0 2px 2px;\
-	border-color: #eee;\
+	border-color: #f4f3ed;\
 	border-radius: 5px 0 0 5px;\
 	background: white;\
 	padding: 6px 10px;\
@@ -1180,7 +1210,8 @@
 \
 #cachetour_header {\
 	font-weight:bold;\
-	font-size:large;\
+	font-size:x-large;\
+	line-height: 24px;\
 }\
 #cachetour_header span {\
 	visibility:hidden;\
@@ -1188,7 +1219,7 @@
 	margin-left:4px;\
 }\
 #cachetour_header i {\
-	color: #444;\
+	color: #2d4f15;\
 	font-size: x-large;\
 }\
 #cachetour_gui.cachetour_pinned #cachetour_header span, #cachetour_gui:hover #cachetour_header span {\
@@ -1271,6 +1302,12 @@
 	padding: 3px 6px 3px 36px;\
 	position:relative;\
 }\
+.cachetour_cache_icon {\
+	width: 16px;\
+	height: 16px;\
+	position: absolute;\
+	top: 4px;\
+}\
 .cachetour_working .cachetour_cache {\
 	background-color: #DCDCDC;\
 }\
@@ -1279,6 +1316,7 @@
 }\
 .cachetour_cache_name {\
 	overflow: hidden;\
+	margin-left: 20px;\
 }\
 .cachetour_cache_code {\
 	font-family: monospace;\
@@ -1490,5 +1528,37 @@
 		})
 	);
 })();
+
+(function() {
+	"use strict";
+
+	CacheTour.registerLocale('de', {
+		download_gpx_file: "GPX-Datei herunterladen",
+		download_gpx_progess: "Erstelle GPX<br />%done% von %count% Caches erledigt",
+		add_new_tour: "Tour hinzufügen",
+		choose_name: "Name wählen",
+		please_wait: "Bitte warten...",
+		select_tour: "Tour auswählen",
+		rename_tour: "Tour umbenennen",
+		keep_expanded: "Immer ausgeklappt"
+	});
+})();
+
+
+(function() {
+	"use strict";
+
+	CacheTour.registerLocale('en', {
+		download_gpx_file: "Download GPX file",
+		download_gpx_progess: "Creating GPX<br />%done% of %count% Caches done",
+		add_new_tour: "Add new tour",
+		choose_name: "Choose a name",
+		please_wait: "Please wait...",
+		select_tour: "Select tour",
+		rename_tour: "Rename tour",
+		keep_expanded: "Keep expanded"
+	});
+})();
+
 
 CacheTour.initialize();

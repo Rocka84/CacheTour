@@ -162,8 +162,8 @@
 	Tour.prototype.toElement = function() {
 		var element = $('<div class="cachetour_tour">'),
 			header = $('<div class="cachetour_tour_header">' + this.name + '</div>');
-		header.append($('<div class="cachetour_tour_rename fa fa-pencil" title="Rename Tour">').click(function() {
-			var new_name = prompt("Enter the name of this Tour", this.name);
+		header.append($('<div class="cachetour_tour_rename fa fa-pencil" title="' + CacheTour.l10n('rename_tour') + '">').click(function() {
+			var new_name = prompt(CacheTour.l10n('choose_name'), this.name);
 			if (new_name) {
 				this.setName(new_name);
 				CacheTour.saveSettings();
