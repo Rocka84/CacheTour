@@ -20,7 +20,7 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
-		current_tour = Math.min(settings.current_tour -1 || 0, tours.length);
+		current_tour = Math.min(settings.current_tour || 0, tours.length - 1);
 		return CacheTour;
 	}
 

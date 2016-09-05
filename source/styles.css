@@ -6,7 +6,7 @@
 	height:24px;
 	border-style: solid;
 	border-width: 2px 0 2px 2px;
-	border-color: #eee;
+	border-color: #f4f3ed;
 	border-radius: 5px 0 0 5px;
 	background: white;
 	padding: 6px 10px;
@@ -23,7 +23,8 @@
 
 #cachetour_header {
 	font-weight:bold;
-	font-size:large;
+	font-size:x-large;
+	line-height: 24px;
 }
 #cachetour_header span {
 	visibility:hidden;
@@ -31,7 +32,7 @@
 	margin-left:4px;
 }
 #cachetour_header i {
-	color: #444;
+	color: #2d4f15;
 	font-size: x-large;
 }
 #cachetour_gui.cachetour_pinned #cachetour_header span, #cachetour_gui:hover #cachetour_header span {
@@ -114,6 +115,12 @@
 	padding: 3px 6px 3px 36px;
 	position:relative;
 }
+.cachetour_cache_icon {
+	width: 16px;
+	height: 16px;
+	position: absolute;
+	top: 4px;
+}
 .cachetour_working .cachetour_cache {
 	background-color: #DCDCDC;
 }
@@ -122,6 +129,7 @@
 }
 .cachetour_cache_name {
 	overflow: hidden;
+	margin-left: 20px;
 }
 .cachetour_cache_code {
 	font-family: monospace;

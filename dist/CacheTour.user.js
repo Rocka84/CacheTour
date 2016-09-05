@@ -41,7 +41,7 @@
 	
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
-		current_tour = Math.min(settings.current_tour -1 || 0, tours.length);
+		current_tour = Math.min(settings.current_tour || 0, tours.length - 1);
 		return CacheTour;
 	}
 
@@ -330,14 +330,41 @@
 		'</wpt>';
 
 	var types = {
-		traditional: {
+		2: {
+			name: 'traditional',
 			icon: "/images/WptTypes/2.gif"
 		},
-		multi: {
+		3: {
+			name: 'multi',
 			icon: "/images/WptTypes/3.gif"
 		},
-		mystery: {
+		4: {
+			name: 'virtual',
+			icon: "/images/WptTypes/4.gif"
+		},
+		5: {
+			name: 'letterbox',
+			icon: "/images/WptTypes/5.gif"
+		},
+		6: {
+			name: 'event',
+			icon: "/images/WptTypes/6.gif"
+		},
+		8: {
+			name: 'mystery',
 			icon: "/images/WptTypes/8.gif"
+		},
+		11: {
+			name: 'webcam',
+			icon: "/images/WptTypes/11.gif"
+		},
+		13: {
+			name: 'cito',
+			icon: "/images/WptTypes/13.gif"
+		},
+		earthcache: {
+			name: 'earthcache',
+			icon: "/images/WptTypes/earthcache.gif"
 		}
 	};
 
@@ -351,6 +378,7 @@
 	Cache.fromJSON = function(data) {
 		var NewCache = new Cache(data.gc_code);
 		if (data.name) NewCache.setName(data.name);
+		if (data.type) NewCache.setType(data.type);
 		if (data.difficulty) NewCache.setDifficulty(data.difficulty);
 		if (data.terrain) NewCache.setTerrain(data.terrain);
 		if (data.size) NewCache.setSize(data.size);
@@ -490,6 +518,27 @@
 		}.bind(this));
 	};
 
+	Cache.getTypeName = function(type) {
+		return types[type].name;
+	};
+
+	Cache.getTypeText = function(type) {
+		return CacheTour.l10n("cachetype_" + type);
+	};
+
+	Cache.getTypeIcon = function(type) {
+		return types[type].icon;
+	};
+
+	Cache.getTypeIdByName = function(name) {
+		for(var id in types) {
+			if (types[id].name === name) {
+				return id;
+			}
+		}
+		return null;
+	};
+
 	Cache.prototype.toGPX = function() {
 		var logs;
 		return this.retrieveDetails().then(function() {
@@ -586,7 +635,7 @@
 
 		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
 		this.Cache.setGcCode(gc_code);
-		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|[\- ])[Cc]ache/, '').toLowerCase());
+		this.Cache.setType(this.source.find('.cacheImage img').attr('src').replace(/^.*\/(\d+)\.gif.*$/,'$1'));
 		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
 		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
 		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));
@@ -1497,14 +1546,16 @@
 (function(){
 	"use strict";
 
-	CacheTour.addCacheToCurrentTour = function(gc_code, name, size, difficulty, terrain) {
+	CacheTour.addCacheToCurrentTour = function(gc_code, type, name, size, difficulty, terrain) {
+
 		CacheTour.getCurrentTour().addCache(
 				(new CacheTour.Cache(gc_code))
 				.setName(name)
+				.setType(type)
 				.setSize(size.toLowerCase())
 				.setDifficulty(difficulty)
 				.setTerrain(terrain)
-				);
+		);
 	};
 
 	CacheTour.registerModule(
@@ -1521,7 +1572,7 @@
 				template.html(template.html().replace(
 					/<span>Log Visit<\/span>/,
 					"<span>Log Visit</span></a>\n" +
-					"<a class=\"lnk cachetour-add\" href=\"#\" onclick=\"CacheTour.addCacheToCurrentTour('{{=gc}}', '{{=name}}', '{{=container.text}}', '{{=difficulty.text}}', '{{=terrain.text}}');return false;\">\n" +
+					"<a class=\"lnk cachetour-add\" href=\"#\" onclick=\"CacheTour.addCacheToCurrentTour('{{=gc}}', '{{=type.value}}', '{{=name}}', '{{=container.text}}', '{{=difficulty.text}}', '{{=terrain.text}}');return false;\">\n" +
 					"<img src=\"/images/icons/16/write_log.png\"><span>Add to Tour</span>"
 				));
 			}
@@ -1556,7 +1607,16 @@
 		please_wait: "Please wait...",
 		select_tour: "Select tour",
 		rename_tour: "Rename tour",
-		keep_expanded: "Keep expanded"
+		keep_expanded: "Keep expanded",
+		cachetype_2: "Traditional Cache",
+		cachetype_3: "Multi-Cache",
+		cachetype_4: "Virtual Cache",
+		cachetype_5: "Letterbox Hybrid",
+		cachetype_6: "Event Cache",
+		cachetype_8: "Mystery Cache",
+		cachetype_11: "Webcam Cache",
+		cachetype_13: "Cache In Trash Out Event",
+		cachetype_earthcache: "EarthCache",
 	});
 })();
 

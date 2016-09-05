@@ -18,7 +18,7 @@
 
 		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
 		this.Cache.setGcCode(gc_code);
-		this.Cache.setType(this.source.find('.cacheImage img').attr('alt').replace(/( Geo|\-)[Cc]ache/, '').toLowerCase());
+		this.Cache.setType(this.source.find('.cacheImage img').attr('src').replace(/^.*\/(\d+)\.gif.*$/,'$1'));
 		this.Cache.setName(this.source.find('#ctl00_ContentBody_CacheName').first().text());
 		this.Cache.setOwner(this.source.find('#ctl00_ContentBody_mcd1 a').first().text());
 		this.Cache.setDate(this.source.find('#ctl00_ContentBody_mcd2').text().split('\n')[3].replace(/^ */,''));

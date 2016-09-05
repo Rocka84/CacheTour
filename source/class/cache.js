@@ -28,6 +28,45 @@
 				'</groundspeak:cache>\n'+
 		'</wpt>';
 
+	var types = {
+		2: {
+			name: 'traditional',
+			icon: "/images/WptTypes/2.gif"
+		},
+		3: {
+			name: 'multi',
+			icon: "/images/WptTypes/3.gif"
+		},
+		4: {
+			name: 'virtual',
+			icon: "/images/WptTypes/4.gif"
+		},
+		5: {
+			name: 'letterbox',
+			icon: "/images/WptTypes/5.gif"
+		},
+		6: {
+			name: 'event',
+			icon: "/images/WptTypes/6.gif"
+		},
+		8: {
+			name: 'mystery',
+			icon: "/images/WptTypes/8.gif"
+		},
+		11: {
+			name: 'webcam',
+			icon: "/images/WptTypes/11.gif"
+		},
+		13: {
+			name: 'cito',
+			icon: "/images/WptTypes/13.gif"
+		},
+		earthcache: {
+			name: 'earthcache',
+			icon: "/images/WptTypes/earthcache.gif"
+		}
+	};
+
 	var Cache = window.CacheTour.Cache = function(gc_code) {
 		this.gc_code = gc_code ? gc_code.toUpperCase() : null;
 		this.logs = [];
@@ -38,6 +77,7 @@
 	Cache.fromJSON = function(data) {
 		var NewCache = new Cache(data.gc_code);
 		if (data.name) NewCache.setName(data.name);
+		if (data.type) NewCache.setType(data.type);
 		if (data.difficulty) NewCache.setDifficulty(data.difficulty);
 		if (data.terrain) NewCache.setTerrain(data.terrain);
 		if (data.size) NewCache.setSize(data.size);
@@ -177,6 +217,27 @@
 		}.bind(this));
 	};
 
+	Cache.getTypeName = function(type) {
+		return types[type].name;
+	};
+
+	Cache.getTypeText = function(type) {
+		return CacheTour.l10n("cachetype_" + type);
+	};
+
+	Cache.getTypeIcon = function(type) {
+		return types[type].icon;
+	};
+
+	Cache.getTypeIdByName = function(name) {
+		for(var id in types) {
+			if (types[id].name === name) {
+				return id;
+			}
+		}
+		return null;
+	};
+
 	Cache.prototype.toGPX = function() {
 		var logs;
 		return this.retrieveDetails().then(function() {
@@ -209,6 +270,7 @@
 	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');
+		element.append($('<img class="cachetour_cache_icon" src="' + types[this.type].icon + '">'));
 		element.append($('<div class="cachetour_cache_name"><a href="' + this.getLink() + '">' + this.name + '</a></div>'));
 		element.append($('<div class="cachetour_cache_code">' + this.gc_code + '</div>'));
 		element.append($('<div class="cachetour_cache_difficulty">' + this.difficulty + '</div>'));
