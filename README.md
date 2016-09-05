@@ -6,8 +6,8 @@ Inspired by GCtour.
 
 BETA:
 -----
-This script is still very young and need some more love! If you find bugs or
-miss features, please report an [https://github.com/Rocka84/CacheTour/issues](issue on github).
+This script is still very young and needs some more love! If you find bugs or
+miss features, please report an [issue on github](https://github.com/Rocka84/CacheTour/issues).
 Or even better: fork this repo, make your changes and do a pull request.
 
 Features:
@@ -15,7 +15,7 @@ Features:
 * Manage multiple tours
 * add geocaches from the map and details pages to
 * reorder / remove caches
-* Retrive cache details and download tour as GPS file
+* Retrieve cache details and download tour as GPS file
 
 Install:
 --------
