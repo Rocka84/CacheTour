@@ -197,7 +197,7 @@
 	"use strict";
 
 	var attribute_names = [
-		'0', // to make indexes match attribute-ids
+		'unknown', // thankfully index 0 is unused
 		'dogs',
 		'fee',
 		'rappelling',
@@ -248,7 +248,7 @@
 		'UV',
 		'snowshoes',
 		'skiis',
-		'tools',
+		's-tools',
 		'nightcache',
 		'parkngrab',
 		'abandonedbuilding',
@@ -260,7 +260,7 @@
 		'wirelessbeacon',
 		'partnership',
 		'seasonal',
-		'tourist',
+		'touristOK',
 		'treeclimbing',
 		'frontyard',
 		'teamwork',
@@ -280,7 +280,7 @@
 	};
 
 	Attribute.createByName = function(name, invert) {
-		return new Attribute(attribute_names.indexOf(name), invert);
+		return new Attribute(Math.max(attribute_names.indexOf(name), 0), invert);
 	};
 
 	Attribute.prototype.getName = function() {
