@@ -27,7 +27,7 @@
 				template.html(template.html().replace(
 					/<span>Log Visit<\/span>/,
 					"<span>Log Visit</span></a>\n" +
-					"<a class=\"lnk cachetour-add\" href=\"#\" onclick=\"CacheTour.addCacheToCurrentTour('{{=gc}}', '{{=type.value}}', '{{=name}}', '{{=container.text}}', '{{=difficulty.text}}', '{{=terrain.text}}');return false;\">\n" +
+					"<a class=\"lnk cachetour-add\" href=\"#\" onclick='CacheTour.addCacheToCurrentTour(\"{{=gc}}\", \"{{=type.value}}\", \"{{=name}}\", \"{{=container.text}}\", \"{{=difficulty.text}}\", \"{{=terrain.text}}\");return false;'>\n" +
 					"<img src=\"/images/icons/16/write_log.png\"><span>Add to Tour</span>"
 				));
 			}

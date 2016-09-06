@@ -17,7 +17,7 @@
 	'</gpx>';
 
 	var Tour = window.CacheTour.Tour = function(name){
-		this.name = name || 'Tour ' + new Date().toISOString();
+		this.name = name || 'Tour ' + (new Date()).toISOString().substr(0, 10);
 		this.caches = [];
 		return this;
 	};
