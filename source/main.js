@@ -39,7 +39,7 @@
 			CacheTour.addTour(CacheTour.Tour.fromJSON(tour_data[i]));
 		}
 		if (tours.length === 0) {
-			CacheTour.addNewTour();
+			CacheTour.addTour(new CacheTour.Tour());
 		}
 		console.log('tours', tours);
 		return CacheTour;

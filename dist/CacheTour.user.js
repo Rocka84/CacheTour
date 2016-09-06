@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.0
+// @version       0.1.1
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -60,7 +60,7 @@
 			CacheTour.addTour(CacheTour.Tour.fromJSON(tour_data[i]));
 		}
 		if (tours.length === 0) {
-			CacheTour.addNewTour();
+			CacheTour.addTour(new CacheTour.Tour());
 		}
 		console.log('tours', tours);
 		return CacheTour;
