@@ -362,9 +362,13 @@
 			name: 'cito',
 			icon: "/images/WptTypes/13.gif"
 		},
-		earthcache: {
+		137: {
 			name: 'earthcache',
-			icon: "/images/WptTypes/earthcache.gif"
+			icon: "/images/WptTypes/137.gif"
+		},
+		1858: {
+			name: 'wherigo',
+			icon: "/images/WptTypes/1858.gif"
 		}
 	};
 
@@ -527,7 +531,7 @@
 	};
 
 	Cache.getTypeIcon = function(type) {
-		return types[type].icon;
+		return types[type] ? types[type].icon : null;
 	};
 
 	Cache.getTypeIdByName = function(name) {
@@ -571,7 +575,7 @@
 	};
 	Cache.prototype.toElement = function() {
 		var element = $('<div class="cachetour_cache">');
-		element.append($('<img class="cachetour_cache_icon" src="' + types[this.type].icon + '">'));
+		element.append($('<img class="cachetour_cache_icon" src="' + Cache.getTypeIcon(this.type) + '">'));
 		element.append($('<div class="cachetour_cache_name"><a href="' + this.getLink() + '">' + this.name + '</a></div>'));
 		element.append($('<div class="cachetour_cache_code">' + this.gc_code + '</div>'));
 		element.append($('<div class="cachetour_cache_difficulty">' + this.difficulty + '</div>'));
