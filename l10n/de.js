@@ -3,7 +3,7 @@
 
 	CacheTour.registerLocale('de', {
 		download_gpx_file: "GPX-Datei herunterladen",
-		download_gpx_progess: "Erstelle GPX<br />%done% von %count% Caches erledigt",
+		download_gpx_progress: "Erstelle GPX<br />%done% von %count% Caches erledigt",
 		add_new_tour: "Tour hinzufügen",
 		choose_name: "Name wählen",
 		please_wait: "Bitte warten...",

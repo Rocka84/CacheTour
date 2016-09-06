@@ -1125,13 +1125,13 @@
 			caches_done = 0;
 
 		gui.addClass('cachetour_working');
-		Gui.showMask(CacheTour.l10n('add_new_tour').replace('%pos%', '0').replace('%count%', count));
+		Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', '0').replace('%count%', count));
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
 				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask(CacheTour.l10n('add_new_tour').replace('%pos%', caches_done).replace('%count%', count));
+				Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', caches_done).replace('%count%', count));
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
@@ -1585,7 +1585,7 @@
 
 	CacheTour.registerLocale('de', {
 		download_gpx_file: "GPX-Datei herunterladen",
-		download_gpx_progess: "Erstelle GPX<br />%done% von %count% Caches erledigt",
+		download_gpx_progress: "Erstelle GPX<br />%done% von %count% Caches erledigt",
 		add_new_tour: "Tour hinzufügen",
 		choose_name: "Name wählen",
 		please_wait: "Bitte warten...",
@@ -1601,7 +1601,7 @@
 
 	CacheTour.registerLocale('en', {
 		download_gpx_file: "Download GPX file",
-		download_gpx_progess: "Creating GPX<br />%done% of %count% Caches done",
+		download_gpx_progress: "Creating GPX<br />%done% of %count% Caches done",
 		add_new_tour: "Add new tour",
 		choose_name: "Choose a name",
 		please_wait: "Please wait...",
