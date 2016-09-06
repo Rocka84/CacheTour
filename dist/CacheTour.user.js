@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.1
+// @version       0.1.2
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
-// @icon          https://github.com/Rocka84/CacheTour/raw/master/icon.png
-// @updateURL     https://github.com/Rocka84/CacheTour/raw/master/CacheTour.version.js
-// @downloadURL   https://github.com/Rocka84/CacheTour/raw/master/CacheTour.user.js
+// @icon          https://github.com/Rocka84/CacheTour/raw/master/dist/icon.png
+// @updateURL     https://github.com/Rocka84/CacheTour/raw/master/dist/CacheTour.version.js
+// @downloadURL   https://github.com/Rocka84/CacheTour/raw/master/dist/CacheTour.user.js
 // @include       http*://www.geocaching.com/*
 // @exclude       https://www.geocaching.com/articles
 // @exclude       https://www.geocaching.com/about

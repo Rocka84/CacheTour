@@ -1,6 +1,6 @@
 {
   "name": "CacheTour",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Collect Geocaches from geocaching.com and download them as single GPX file.",
   "main": "dist/CacheTour.user.js",
   "scripts": {
@@ -26,12 +26,12 @@
   	  "require" : [
   	  	  "https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"
       ],
-  	  "update_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.version.js",
-  	  "download_url": "https://github.com/Rocka84/CacheTour/raw/master/CacheTour.user.js",
-  	  "icon": "https://github.com/Rocka84/CacheTour/raw/master/icon.png",
+  	  "update_url": "https://github.com/Rocka84/CacheTour/raw/master/dist/CacheTour.version.js",
+  	  "download_url": "https://github.com/Rocka84/CacheTour/raw/master/dist/CacheTour.user.js",
+  	  "icon": "https://github.com/Rocka84/CacheTour/raw/master/dist/icon.png",
   	  "run_at": "document-end"
   },
-  "license": "ISC",
+  "license": "GPL-3.0",
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-contrib-concat": "^1.0.1",
