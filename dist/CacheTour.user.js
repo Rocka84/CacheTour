@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.2
+// @version       0.1.3
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -17,7 +17,10 @@
 // @grant         GM_deleteValue
 // @grant         GM_addStyle
 // @require       https://cdn.rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js
+// @require       https://code.jquery.com/jquery-1.8.3.min.js
 // ==/UserScript==
+
+var console = unsafeWindow.console; //for greasemonkey
 
 (function(){
 	"use strict";
@@ -187,6 +190,13 @@
 				return locales.en[key];
 			}
 			return locales[locale][key];
+		},
+		resetSettings: function(){
+			if (confirm('This deletes all tours and settings for CacheTour and cannot be undone! Are you sure about that?')) {
+				GM_deleteValue("settings");
+				GM_deleteValue("tours");
+				document.location.reload();
+			}
 		}
 	};
 	
@@ -622,6 +632,8 @@
 (function(){
 	"use strict";
 
+	var Geo = unsafeWindow.Geo;
+
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
 		this.source_raw = source;
 		this.source = $(source);
@@ -634,7 +646,6 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
-		// console.log('base', this.source);
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
 		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
@@ -689,7 +700,6 @@
 	};
 
 	CacheParser.prototype.parseLogs = function(limit) {
-		// console.log('logs', this.source.find('script').html());
 		this.Cache.clearLogs();
 		limit = limit || 20;
 		if (this.source_raw.match(/initalLogs\s*=\s*(\{.*\});/)) {

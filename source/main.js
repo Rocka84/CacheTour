@@ -1,3 +1,5 @@
+var console = unsafeWindow.console; //for greasemonkey
+
 (function(){
 	"use strict";
 	
@@ -166,6 +168,13 @@
 				return locales.en[key];
 			}
 			return locales[locale][key];
+		},
+		resetSettings: function(){
+			if (confirm('This deletes all tours and settings for CacheTour and cannot be undone! Are you sure about that?')) {
+				GM_deleteValue("settings");
+				GM_deleteValue("tours");
+				document.location.reload();
+			}
 		}
 	};
 	

@@ -1,6 +1,8 @@
 (function(){
 	"use strict";
 
+	var Geo = unsafeWindow.Geo;
+
 	var CacheParser = CacheTour.CacheParser = function(source, Cache) {
 		this.source_raw = source;
 		this.source = $(source);
@@ -13,7 +15,6 @@
 	};
 	
 	CacheParser.prototype.parseBaseData = function() {
-		// console.log('base', this.source);
 		var gc_code = this.source.find('#ctl00_ContentBody_CoordInfoLinkControl1_uxCoordInfoCode').first().html();
 
 		this.Cache.setId(this.source.find('.LogVisit').attr('href').match(/ID=(\d+)/)[1]);
@@ -68,7 +69,6 @@
 	};
 
 	CacheParser.prototype.parseLogs = function(limit) {
-		// console.log('logs', this.source.find('script').html());
 		this.Cache.clearLogs();
 		limit = limit || 20;
 		if (this.source_raw.match(/initalLogs\s*=\s*(\{.*\});/)) {
