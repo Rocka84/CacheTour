@@ -1,6 +1,6 @@
 {
   "name": "CacheTour",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Collect Geocaches from geocaching.com and download them as single GPX file.",
   "main": "dist/CacheTour.user.js",
   "scripts": {

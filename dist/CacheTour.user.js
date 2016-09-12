@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.4
+// @version       0.1.5
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -1533,7 +1533,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	CacheTour.registerModule(
 		new CacheTour.Module({
 			name: "Cache details page",
-			requirements: {url: /\/geocache\//},
+			requirements: {url: /\/geocache\/|\/cache_details.aspx/},
 			run: function() {
 				var gpx_button = $('#ctl00_ContentBody_btnSendToGPS').first(),
 					add_to_tour_button = gpx_button.clone();

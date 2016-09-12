@@ -4,7 +4,7 @@
 	CacheTour.registerModule(
 		new CacheTour.Module({
 			name: "Cache details page",
-			requirements: {url: /\/geocache\//},
+			requirements: {url: /\/geocache\/|\/cache_details.aspx/},
 			run: function() {
 				var gpx_button = $('#ctl00_ContentBody_btnSendToGPS').first(),
 					add_to_tour_button = gpx_button.clone();
