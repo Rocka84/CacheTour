@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.5
+// @version       0.1.6
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -31,7 +31,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		tours = [],
 		current_tour = 0,
 		locales = [],
-		locale = 'de';
+		locale;
 
 	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
@@ -45,6 +45,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
 		current_tour = Math.min(settings.current_tour || 0, tours.length - 1);
+		locale = settings.locale || 'en';
 		return CacheTour;
 	}
 
@@ -1119,6 +1120,7 @@ var console = unsafeWindow.console; //for greasemonkey
 				CacheTour.addTour(tour);
 			}
 		});
+		$('<div class="fa fa-cog" title="' + CacheTour.l10n('settings') + '">').appendTo(buttonbar).click(showSettingsDialog);
 
 		initTourSelect();
 		Gui.updateCacheList();
@@ -1139,34 +1141,42 @@ var console = unsafeWindow.console; //for greasemonkey
 			caches_done = 0;
 
 		gui.addClass('cachetour_working');
-		Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', '0').replace('%count%', count));
+		Gui.showWaitMessage(CacheTour.l10n('download_gpx_progress').replace('%done%', '0').replace('%count%', count));
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
 				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', caches_done).replace('%count%', count));
+				Gui.showWaitMessage(CacheTour.l10n('download_gpx_progress').replace('%done%', caches_done).replace('%count%', count));
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
 		}).then(function(){
-			Gui.hideMask();
+			Gui.hideWaitMessage();
 			gui.removeClass('cachetour_working');
 		});
 	}
 
+	Gui.showWaitMessage = function(message) {
+		Gui.showMask();
+		if (!mask_message) {
+			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
+		}
+		mask.empty()
+			.append($('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">'))
+			.append(mask_message);
+		mask_message.html(message || CacheTour.l10n('please_wait'));
+	};
+
 	Gui.showMask = function(message) {
 		if (!mask) {
 			mask = $('<div id="cachetour_mask">').appendTo(document.body);
-			$('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">').appendTo(mask);
-			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
 		}
-		mask_message.html(message || CacheTour.l10n('please_wait'));
 		mask.removeClass('hidden');
 		return Gui;
 	};
 
-	Gui.hideMask = function () {
+	Gui.hideMask = Gui.hideWaitMessage = function () {
 		if (mask) {
 			mask.addClass('hidden');
 		}
@@ -1210,6 +1220,52 @@ var console = unsafeWindow.console; //for greasemonkey
 		} else {
 			showTourSelect();
 		}
+	}
+
+	var settings_dialog;
+
+	function createSettingRow(label, element) {
+		return $('<tr><td>' + label + '</td></tr>').append($('<td>').append(element));
+	}
+
+	function initSettingsDialog() {
+		if (settings_dialog) return settings_dialog;
+
+		settings_dialog = $('<div id="cachetour_settings_dialog"><div>CacheTour - ' + CacheTour.l10n('settings') + '</div></div>');
+		$('<div class="fa fa-times" id="cachetour_settings_close">').appendTo(settings_dialog);
+		var table = $('<table>').appendTo(settings_dialog);
+
+		var language_select = $('<select id="cachetour_settings_language">');
+		// @todo: automate creation of language <option>s
+		$('<option value="en">English</option>').appendTo(language_select);
+		$('<option value="de">Deutsch</option>').appendTo(language_select);
+
+		createSettingRow(CacheTour.l10n('language') + ':', language_select).appendTo(table);
+		createSettingRow('', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
+
+		return settings_dialog;
+	}
+
+	function showSettingsDialog() {
+		initSettingsDialog();
+
+		Gui.showMask();
+		mask.empty().append(settings_dialog);
+		//(re)add event after the element is in the DOM
+		$('#cachetour_settings_save').click(saveSettings);
+		$('#cachetour_settings_close').click(hideSetttingsDialog);
+
+		$('#cachetour_settings_language').attr('value', CacheTour.getSetting('locale'));
+	}
+
+	function hideSetttingsDialog() {
+		Gui.hideMask();
+	}
+
+	function saveSettings() {
+		hideSetttingsDialog();
+		CacheTour.setSetting('locale', $('#cachetour_settings_language').attr('value'));
+		// document.location.reload();
 	}
 
 	CacheTour.registerModule(Gui);
@@ -1470,7 +1526,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	left:0;\
 	right:0;\
 	background-color: rgba(68, 68, 68, .8);\
-	z-index: 1099;\
+	z-index: 1101;\
 }\
 \
 .hidden {\
@@ -1520,6 +1576,45 @@ var console = unsafeWindow.console; //for greasemonkey
 }\
 .cachetour_select_item:hover {\
 	border-color: black;\
+}\
+#cachetour_settings_dialog {\
+	position:relative;\
+	background: white;\
+	border: 1px solid black;\
+	width: 600px;\
+	margin: 65px auto 0;\
+	padding: 12px;\
+    border-radius: 6px;\
+}\
+#cachetour_settings_dialog table {\
+	width:100%;\
+    margin-bottom: 0;\
+}\
+\
+#cachetour_settings_dialog tr td:first-of-type {\
+	width: 100px;\
+}\
+#cachetour_settings_dialog div:first-of-type {\
+    font-size: large;\
+    font-weight: bold;\
+    margin-bottom: 12px;\
+}\
+#cachetour_settings_dialog select, #cachetour_settings_dialog input {\
+    min-width: 120px;\
+    padding: 3px;\
+}\
+#cachetour_settings_save {\
+	font-weight: bold;\
+	float: right;\
+}\
+#cachetour_settings_close {\
+	position:absolute;\
+	top:6px;\
+	right:6px;\
+	cursor:pointer;\
+}\
+#cachetour_settings_close:hover {\
+	color: red;\
 }\
 \
 ');
@@ -1629,7 +1724,10 @@ var console = unsafeWindow.console; //for greasemonkey
 		please_wait: "Bitte warten...",
 		select_tour: "Tour auswählen",
 		rename_tour: "Tour umbenennen",
-		keep_expanded: "Immer ausgeklappt"
+		keep_expanded: "Immer ausgeklappt",
+		settings: "Einstellungen",
+		save: "Speichern",
+		language: "Sprache"
 	});
 })();
 
@@ -1655,6 +1753,9 @@ var console = unsafeWindow.console; //for greasemonkey
 		cachetype_11: "Webcam Cache",
 		cachetype_13: "Cache In Trash Out Event",
 		cachetype_earthcache: "EarthCache",
+		settings: "Settings",
+		save: "Save",
+		language: "Language"
 	});
 })();
 

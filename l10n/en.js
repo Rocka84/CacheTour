@@ -19,6 +19,9 @@
 		cachetype_11: "Webcam Cache",
 		cachetype_13: "Cache In Trash Out Event",
 		cachetype_earthcache: "EarthCache",
+		settings: "Settings",
+		save: "Save",
+		language: "Language"
 	});
 })();
 

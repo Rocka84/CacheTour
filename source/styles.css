@@ -220,7 +220,7 @@
 	left:0;
 	right:0;
 	background-color: rgba(68, 68, 68, .8);
-	z-index: 1099;
+	z-index: 1101;
 }
 
 .hidden {
@@ -270,5 +270,44 @@
 }
 .cachetour_select_item:hover {
 	border-color: black;
+}
+#cachetour_settings_dialog {
+	position:relative;
+	background: white;
+	border: 1px solid black;
+	width: 600px;
+	margin: 65px auto 0;
+	padding: 12px;
+    border-radius: 6px;
+}
+#cachetour_settings_dialog table {
+	width:100%;
+    margin-bottom: 0;
+}
+
+#cachetour_settings_dialog tr td:first-of-type {
+	width: 100px;
+}
+#cachetour_settings_dialog div:first-of-type {
+    font-size: large;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+#cachetour_settings_dialog select, #cachetour_settings_dialog input {
+    min-width: 120px;
+    padding: 3px;
+}
+#cachetour_settings_save {
+	font-weight: bold;
+	float: right;
+}
+#cachetour_settings_close {
+	position:absolute;
+	top:6px;
+	right:6px;
+	cursor:pointer;
+}
+#cachetour_settings_close:hover {
+	color: red;
 }
 

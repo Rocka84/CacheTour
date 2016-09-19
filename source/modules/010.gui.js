@@ -49,6 +49,7 @@
 				CacheTour.addTour(tour);
 			}
 		});
+		$('<div class="fa fa-cog" title="' + CacheTour.l10n('settings') + '">').appendTo(buttonbar).click(showSettingsDialog);
 
 		initTourSelect();
 		Gui.updateCacheList();
@@ -69,34 +70,42 @@
 			caches_done = 0;
 
 		gui.addClass('cachetour_working');
-		Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', '0').replace('%count%', count));
+		Gui.showWaitMessage(CacheTour.l10n('download_gpx_progress').replace('%done%', '0').replace('%count%', count));
 
 		CacheTour.getCurrentTour().toGPX(function(phase, state, index){
 			if (phase === 'cache' && state === 'done') {
 				caches_done++;
 				$('.cachetour_cache').eq(index).addClass('cachetour_done');
-				Gui.showMask(CacheTour.l10n('download_gpx_progress').replace('%done%', caches_done).replace('%count%', count));
+				Gui.showWaitMessage(CacheTour.l10n('download_gpx_progress').replace('%done%', caches_done).replace('%count%', count));
 			}
 		}).then(function(content) {
 			CacheTour.saveFile(CacheTour.getCurrentTour().getName() + ".gpx", content);
 		}).then(function(){
-			Gui.hideMask();
+			Gui.hideWaitMessage();
 			gui.removeClass('cachetour_working');
 		});
 	}
 
+	Gui.showWaitMessage = function(message) {
+		Gui.showMask();
+		if (!mask_message) {
+			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
+		}
+		mask.empty()
+			.append($('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">'))
+			.append(mask_message);
+		mask_message.html(message || CacheTour.l10n('please_wait'));
+	};
+
 	Gui.showMask = function(message) {
 		if (!mask) {
 			mask = $('<div id="cachetour_mask">').appendTo(document.body);
-			$('<i class="fa fa-circle-o-notch fa-spin fa-3x fa-fw">').appendTo(mask);
-			mask_message = $('<div id="cachetour_mask_message">').appendTo(mask);
 		}
-		mask_message.html(message || CacheTour.l10n('please_wait'));
 		mask.removeClass('hidden');
 		return Gui;
 	};
 
-	Gui.hideMask = function () {
+	Gui.hideMask = Gui.hideWaitMessage = function () {
 		if (mask) {
 			mask.addClass('hidden');
 		}
@@ -140,6 +149,52 @@
 		} else {
 			showTourSelect();
 		}
+	}
+
+	var settings_dialog;
+
+	function createSettingRow(label, element) {
+		return $('<tr><td>' + label + '</td></tr>').append($('<td>').append(element));
+	}
+
+	function initSettingsDialog() {
+		if (settings_dialog) return settings_dialog;
+
+		settings_dialog = $('<div id="cachetour_settings_dialog"><div>CacheTour - ' + CacheTour.l10n('settings') + '</div></div>');
+		$('<div class="fa fa-times" id="cachetour_settings_close">').appendTo(settings_dialog);
+		var table = $('<table>').appendTo(settings_dialog);
+
+		var language_select = $('<select id="cachetour_settings_language">');
+		// @todo: automate creation of language <option>s
+		$('<option value="en">English</option>').appendTo(language_select);
+		$('<option value="de">Deutsch</option>').appendTo(language_select);
+
+		createSettingRow(CacheTour.l10n('language') + ':', language_select).appendTo(table);
+		createSettingRow('', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
+
+		return settings_dialog;
+	}
+
+	function showSettingsDialog() {
+		initSettingsDialog();
+
+		Gui.showMask();
+		mask.empty().append(settings_dialog);
+		//(re)add event after the element is in the DOM
+		$('#cachetour_settings_save').click(saveSettings);
+		$('#cachetour_settings_close').click(hideSetttingsDialog);
+
+		$('#cachetour_settings_language').attr('value', CacheTour.getSetting('locale'));
+	}
+
+	function hideSetttingsDialog() {
+		Gui.hideMask();
+	}
+
+	function saveSettings() {
+		hideSetttingsDialog();
+		CacheTour.setSetting('locale', $('#cachetour_settings_language').attr('value'));
+		// document.location.reload();
 	}
 
 	CacheTour.registerModule(Gui);

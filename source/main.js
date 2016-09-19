@@ -9,7 +9,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		tours = [],
 		current_tour = 0,
 		locales = [],
-		locale = 'de';
+		locale;
 
 	function initDependencies() {
 		$('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">').appendTo(document.body);
@@ -23,6 +23,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	function loadSettings() {
 		settings = JSON.parse(GM_getValue("settings") || "{}");
 		current_tour = Math.min(settings.current_tour || 0, tours.length - 1);
+		locale = settings.locale || 'en';
 		return CacheTour;
 	}
 

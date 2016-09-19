@@ -9,7 +9,10 @@
 		please_wait: "Bitte warten...",
 		select_tour: "Tour auswählen",
 		rename_tour: "Tour umbenennen",
-		keep_expanded: "Immer ausgeklappt"
+		keep_expanded: "Immer ausgeklappt",
+		settings: "Einstellungen",
+		save: "Speichern",
+		language: "Sprache"
 	});
 })();
 
