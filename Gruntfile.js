@@ -47,7 +47,7 @@ module.exports = function (grunt) {
 		return createFromTemplateFile("dist/" + grunt.config.data.pkg.name + ".version.js", "templates/version.js.tpl");
 	});
 
-	grunt.task.registerTask("create_dev_header_file",function() {
+	grunt.task.registerTask("create_dev_header",function() {
 		var pkg = clone(grunt.config.data.pkg);
 		pkg.userscript.require = pkg.userscript.require||[];
 		pkg.userscript.require.push("file://" + process.cwd() + "/dist/" + grunt.config.data.pkg.name + ".user.js");
