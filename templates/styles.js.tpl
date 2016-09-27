@@ -11,7 +11,9 @@
 
 
 	StylesJS.init = function(){
-		CacheTour.addStyle('<%= css %>');
+		CacheTour.addStyle(
+'<%= css %>'
+		);
 	};
 })();
 

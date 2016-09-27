@@ -1304,7 +1304,8 @@ var console = unsafeWindow.console; //for greasemonkey
 
 
 	StylesJS.init = function(){
-		CacheTour.addStyle('#cachetour_gui {\
+		CacheTour.addStyle(
+'#cachetour_gui {\
 	position: fixed;\
 	right: 0;\
 	top: 80px;\
@@ -1350,19 +1351,19 @@ var console = unsafeWindow.console; //for greasemonkey
 	position:relative;\
 }\
 #cachetour_tour_wrapper:empty {\
-    text-align: center;\
-    font-style: italic;\
+	text-align: center;\
+	font-style: italic;\
 }\
 #cachetour_tour_wrapper:empty:before {\
-    content: "- No entries -";\
+	content: "- No entries -";\
 }\
 \
 #cachetour_pin {\
 	position: absolute;\
-    right: 5px;\
-    top: 4px;\
-    cursor: pointer;\
-    visibility:hidden;\
+	right: 5px;\
+	top: 4px;\
+	cursor: pointer;\
+	visibility:hidden;\
 }\
 \
 #cachetour_gui #cachetour_pin .fa-ban {\
@@ -1394,8 +1395,8 @@ var console = unsafeWindow.console; //for greasemonkey
 }\
 #cachetour_tour_select_btn {\
 	font-size: large;\
-    line-height: inherit;\
-    cursor:pointer;\
+	line-height: inherit;\
+	cursor:pointer;\
 }\
 .cachetour_tour_header {\
 	font-size: larger;\
@@ -1440,37 +1441,37 @@ var console = unsafeWindow.console; //for greasemonkey
 .cachetour_cache_code {\
 	font-family: monospace;\
 	display: inline-block;\
-    width:25%;\
+	width:25%;\
 }\
 .cachetour_cache .cachetour_cache_delete {\
-    position: absolute;\
-    top: 1px;\
-    right: 1px;\
-    color: gray;\
-    background-color: white;\
-    padding: 3px;\
-    cursor: pointer;\
-    display: none;\
+	position: absolute;\
+	top: 1px;\
+	right: 1px;\
+	color: gray;\
+	background-color: white;\
+	padding: 3px;\
+	cursor: pointer;\
+	display: none;\
 }\
 .cachetour_cache:hover .cachetour_cache_delete {\
 	display: block;\
 }\
 .cachetour_cache::before {\
-    counter-increment: tour;\
-    content: counters(tour, ".") ".";\
-    position: absolute;\
-    left: 6px;\
-    font-size: x-large;\
-    color: gray;\
-    overflow: hidden;\
-    top: -4px;\
+	counter-increment: tour;\
+	content: counters(tour, ".") ".";\
+	position: absolute;\
+	left: 6px;\
+	font-size: x-large;\
+	color: gray;\
+	overflow: hidden;\
+	top: -4px;\
 }\
 .cachetour_cache_difficulty, .cachetour_cache_terrain, .cachetour_cache_size {\
-    display: inline-block;\
-    position: relative;\
-    width: calc(25% - .7em);\
-    padding-left:.2em;\
-    margin-left:.5em;\
+	display: inline-block;\
+	position: relative;\
+	width: calc(25% - .7em);\
+	padding-left:.2em;\
+	margin-left:.5em;\
 }\
 \
 .cachetour_cache_difficulty::before, .cachetour_cache_terrain::before, .cachetour_cache_size::before {\
@@ -1495,7 +1496,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	left: 4px;\
 	bottom: 2px;\
 	display: none;\
-    color: gray;\
+	color: gray;\
 }\
 .cachetour_cache_order > * {\
 	cursor: pointer;\
@@ -1534,13 +1535,13 @@ var console = unsafeWindow.console; //for greasemonkey
 }\
 #cachetour_mask > .fa {\
 	position: absolute;\
-    top: 50%;\
-    width:100%;\
-    color: white;\
+	top: 50%;\
+	width:100%;\
+	color: white;\
 }\
 #cachetour_mask > .fa::before {\
 	position: absolute;\
-    transform: translate(-50%, -50%);\
+	transform: translate(-50%, -50%);\
 }\
 #cachetour_mask_message {\
 	position: absolute;\
@@ -1550,26 +1551,26 @@ var console = unsafeWindow.console; //for greasemonkey
 	color:white;\
 	font-size: x-large;\
 	background: rgba(68, 68, 68, 1);\
-    padding: 12px 14px;\
-    border-radius: 12px;\
-    text-align: center;\
+	padding: 12px 14px;\
+	border-radius: 12px;\
+	text-align: center;\
 }\
 #cachetour_select {\
 	background: white;\
-    font-size: larger;\
-    padding: 6px;\
-    border: 1px solid black;\
-    border-radius: 6px;\
-    display:none;\
+	font-size: larger;\
+	padding: 6px;\
+	border: 1px solid black;\
+	border-radius: 6px;\
+	display:none;\
 }\
 #cachetour_select_wrapper.cachetour_show #cachetour_select {\
 	display:block;\
 }\
 .cachetour_select_item {\
 	border: 1px dashed #DCDCDC;\
-    border-radius: 4px;\
-    padding: 2px 4px;\
-    cursor: pointer;\
+	border-radius: 4px;\
+	padding: 2px 4px;\
+	cursor: pointer;\
 }\
 .cachetour_select_item + .cachetour_select_item {\
 	margin-top:4px;\
@@ -1584,24 +1585,24 @@ var console = unsafeWindow.console; //for greasemonkey
 	width: 600px;\
 	margin: 65px auto 0;\
 	padding: 12px;\
-    border-radius: 6px;\
+	border-radius: 6px;\
 }\
 #cachetour_settings_dialog table {\
 	width:100%;\
-    margin-bottom: 0;\
+	margin-bottom: 0;\
 }\
 \
 #cachetour_settings_dialog tr td:first-of-type {\
 	width: 100px;\
 }\
 #cachetour_settings_dialog div:first-of-type {\
-    font-size: large;\
-    font-weight: bold;\
-    margin-bottom: 12px;\
+	font-size: large;\
+	font-weight: bold;\
+	margin-bottom: 12px;\
 }\
 #cachetour_settings_dialog select, #cachetour_settings_dialog input {\
-    min-width: 120px;\
-    padding: 3px;\
+	min-width: 120px;\
+	padding: 3px;\
 }\
 #cachetour_settings_save {\
 	font-weight: bold;\
@@ -1617,7 +1618,8 @@ var console = unsafeWindow.console; //for greasemonkey
 	color: red;\
 }\
 \
-');
+'
+		);
 	};
 })();
 
