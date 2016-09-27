@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.6
+// @version       0.1.7
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -815,7 +815,7 @@ var console = unsafeWindow.console; //for greasemonkey
 				id: this.id,
 				date: this.date,
 				type: this.type,
-				finder: this.finder,
+				finder: CacheTour.escapeHTML(this.finder),
 				text: this.text
 			}));
 		}.bind(this));

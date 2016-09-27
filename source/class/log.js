@@ -58,7 +58,7 @@
 				id: this.id,
 				date: this.date,
 				type: this.type,
-				finder: this.finder,
+				finder: CacheTour.escapeHTML(this.finder),
 				text: this.text
 			}));
 		}.bind(this));
