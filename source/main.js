@@ -44,7 +44,6 @@ var console = unsafeWindow.console; //for greasemonkey
 		if (tours.length === 0) {
 			CacheTour.addTour(new CacheTour.Tour());
 		}
-		console.log('tours', tours);
 		return CacheTour;
 	}
 

@@ -66,7 +66,6 @@ var console = unsafeWindow.console; //for greasemonkey
 		if (tours.length === 0) {
 			CacheTour.addTour(new CacheTour.Tour());
 		}
-		console.log('tours', tours);
 		return CacheTour;
 	}
 
@@ -1685,10 +1684,6 @@ var console = unsafeWindow.console; //for greasemonkey
 					"<img src=\"/images/icons/16/write_log.png\"><span>Add to Tour</span>"
 				));
 				
-				$(unsafeWindow.document.body).delegate('.cachetour_add_to_tour', 'click', function() {
-					console.log($(this));
-				});
-
 				/*
 				 * In Firefox, the sandbox is quite restrictive, so you can't add event handlers
 				 * to elements you didn't create yourself. But you may trigger events on elements
@@ -1700,7 +1695,6 @@ var console = unsafeWindow.console; //for greasemonkey
 				CacheTour.addStyle('#cachetour_add_to_tour { display:none; }');
 				var add_btn = $('<button id="cachetour_add_to_tour">Add Cache</button>').appendTo(document.body).click(function(){
 					var cache_link = $('.cachetour_add_to_tour');
-					console.log(cache_link);
 					if (cache_link && cache_link.attr('data-gc-code')) {
 						CacheTour.getCurrentTour().addCache(
 								(new CacheTour.Cache(cache_link.attr('data-gc-code')))
