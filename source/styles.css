@@ -310,4 +310,7 @@
 #cachetour_settings_close:hover {
 	color: red;
 }
+#cachetour_version {
+	font-size:smaller;
+}
 

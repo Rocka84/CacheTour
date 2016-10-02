@@ -103,6 +103,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	}
 
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
+		version: GM_info.script.version,
 		initialize: function() {
 			initDependencies();
 			loadTours();
@@ -877,7 +878,7 @@ var console = unsafeWindow.console; //for greasemonkey
 
 	var template_gpx =
 	"<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n" +
-	'<gpx version="1.0" creator="CacheTour" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd http://www.gsak.net/xmlv1/6 http://www.gsak.net/xmlv1/6/gsak.xsd" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1" xmlns:gsak="http://www.gsak.net/xmlv1/6" xmlns:cgeo="http://www.cgeo.org/wptext/1/0">\n' +
+	'<gpx version="1.0" creator="CacheTour v' + CacheTour.version + '" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd http://www.gsak.net/xmlv1/6 http://www.gsak.net/xmlv1/6/gsak.xsd" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1" xmlns:gsak="http://www.gsak.net/xmlv1/6" xmlns:cgeo="http://www.cgeo.org/wptext/1/0">\n' +
 		'<name><% name %></name>\n' +
 		'<desc><% description %></desc>\n' +
 		'<author>CacheTour</author>\n' +
@@ -1242,7 +1243,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		$('<option value="de">Deutsch</option>').appendTo(language_select);
 
 		createSettingRow(CacheTour.l10n('language') + ':', language_select).appendTo(table);
-		createSettingRow('', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
+		createSettingRow('<span id="cachetour_version">v' + CacheTour.version + '</span>', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
 
 		return settings_dialog;
 	}
@@ -1617,6 +1618,9 @@ var console = unsafeWindow.console; //for greasemonkey
 }\
 #cachetour_settings_close:hover {\
 	color: red;\
+}\
+#cachetour_version {\
+	font-size:smaller;\
 }\
 \
 '

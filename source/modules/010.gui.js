@@ -170,7 +170,7 @@
 		$('<option value="de">Deutsch</option>').appendTo(language_select);
 
 		createSettingRow(CacheTour.l10n('language') + ':', language_select).appendTo(table);
-		createSettingRow('', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
+		createSettingRow('<span id="cachetour_version">v' + CacheTour.version + '</span>', $('<input type="button" id="cachetour_settings_save" value="' + CacheTour.l10n('save') + '">')).appendTo(table);
 
 		return settings_dialog;
 	}

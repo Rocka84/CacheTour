@@ -81,6 +81,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	}
 
 	var CacheTour = unsafeWindow.CacheTour = window.CacheTour = {
+		version: GM_info.script.version,
 		initialize: function() {
 			initDependencies();
 			loadTours();
