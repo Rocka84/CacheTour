@@ -2,6 +2,7 @@
 	"use strict";
 
 	CacheTour.registerLocale('de', {
+		locale_name: "Deutsch",
 		download_gpx_file: "GPX-Datei herunterladen",
 		download_gpx_progress: "Erstelle GPX<br />%done% von %count% Caches erledigt",
 		add_new_tour: "Tour hinzufügen",
@@ -9,7 +10,7 @@
 		please_wait: "Bitte warten...",
 		select_tour: "Tour auswählen",
 		rename_tour: "Tour umbenennen",
-		keep_expanded: "Immer ausgeklappt",
+		keep_unfolded: "Immer ausgeklappt",
 		settings: "Einstellungen",
 		save: "Speichern",
 		language: "Sprache"

@@ -1097,7 +1097,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		$('<i class="fa fa-archive main-icon">').appendTo(header);
 		$('<span id="cachetour_header">CacheTour</span>').appendTo(header);
 
-		var pin = $('<div id="cachetour_pin" class="fa-stack" title="' + CacheTour.l10n('keep_expanded') + '">');
+		var pin = $('<div id="cachetour_pin" class="fa-stack" title="' + CacheTour.l10n('keep_unfolded') + '">');
 		gui.append(pin);
 		pin.append($('<div class="fa fa-thumb-tack fa-stack-1x">'));
 		pin.append($('<div class="fa fa-ban fa-stack-2x">'));
@@ -1719,6 +1719,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	"use strict";
 
 	CacheTour.registerLocale('de', {
+		locale_name: "Deutsch",
 		download_gpx_file: "GPX-Datei herunterladen",
 		download_gpx_progress: "Erstelle GPX<br />%done% von %count% Caches erledigt",
 		add_new_tour: "Tour hinzufügen",
@@ -1726,7 +1727,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		please_wait: "Bitte warten...",
 		select_tour: "Tour auswählen",
 		rename_tour: "Tour umbenennen",
-		keep_expanded: "Immer ausgeklappt",
+		keep_unfolded: "Immer ausgeklappt",
 		settings: "Einstellungen",
 		save: "Speichern",
 		language: "Sprache"
@@ -1738,6 +1739,7 @@ var console = unsafeWindow.console; //for greasemonkey
 	"use strict";
 
 	CacheTour.registerLocale('en', {
+		locale_name: "English",
 		download_gpx_file: "Download GPX file",
 		download_gpx_progress: "Creating GPX<br />%done% of %count% Caches done",
 		add_new_tour: "Add new tour",
@@ -1745,7 +1747,7 @@ var console = unsafeWindow.console; //for greasemonkey
 		please_wait: "Please wait...",
 		select_tour: "Select tour",
 		rename_tour: "Rename tour",
-		keep_expanded: "Keep expanded",
+		keep_unfolded: "Keep unfolded",
 		cachetype_2: "Traditional Cache",
 		cachetype_3: "Multi-Cache",
 		cachetype_4: "Virtual Cache",

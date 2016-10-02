@@ -26,7 +26,7 @@
 		$('<i class="fa fa-archive main-icon">').appendTo(header);
 		$('<span id="cachetour_header">CacheTour</span>').appendTo(header);
 
-		var pin = $('<div id="cachetour_pin" class="fa-stack" title="' + CacheTour.l10n('keep_expanded') + '">');
+		var pin = $('<div id="cachetour_pin" class="fa-stack" title="' + CacheTour.l10n('keep_unfolded') + '">');
 		gui.append(pin);
 		pin.append($('<div class="fa fa-thumb-tack fa-stack-1x">'));
 		pin.append($('<div class="fa fa-ban fa-stack-2x">'));

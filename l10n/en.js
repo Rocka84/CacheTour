@@ -2,6 +2,7 @@
 	"use strict";
 
 	CacheTour.registerLocale('en', {
+		locale_name: "English",
 		download_gpx_file: "Download GPX file",
 		download_gpx_progress: "Creating GPX<br />%done% of %count% Caches done",
 		add_new_tour: "Add new tour",
@@ -9,7 +10,7 @@
 		please_wait: "Please wait...",
 		select_tour: "Select tour",
 		rename_tour: "Rename tour",
-		keep_expanded: "Keep expanded",
+		keep_unfolded: "Keep unfolded",
 		cachetype_2: "Traditional Cache",
 		cachetype_3: "Multi-Cache",
 		cachetype_4: "Virtual Cache",
