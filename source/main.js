@@ -164,11 +164,12 @@ var console = unsafeWindow.console; //for greasemonkey
 		setLocale: function(_locale) {
 			locale = _locale;
 		},
-		l10n: function(key) {
-			if (locale !== 'en' && !locales[locale][key]) {
+		l10n: function(key, _locale) {
+			_locale = _locale || locale;
+			if (_locale !== 'en' && !locales[_locale][key]) {
 				return locales.en[key];
 			}
-			return locales[locale][key];
+			return locales[_locale][key];
 		},
 		resetSettings: function(){
 			if (confirm('This deletes all tours and settings for CacheTour and cannot be undone! Are you sure about that?')) {

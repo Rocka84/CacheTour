@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          CacheTour
 // @namespace     de.rocka84.cachetour
-// @version       0.1.7
+// @version       0.1.8
 // @author        Rocka84 <f.dillmeier@gmail.com>
 // @description   Collect Geocaches from geocaching.com and download them as single GPX file.
 // @run-at        document-end
@@ -186,11 +186,12 @@ var console = unsafeWindow.console; //for greasemonkey
 		setLocale: function(_locale) {
 			locale = _locale;
 		},
-		l10n: function(key) {
-			if (locale !== 'en' && !locales[locale][key]) {
+		l10n: function(key, _locale) {
+			_locale = _locale || locale;
+			if (_locale !== 'en' && !locales[_locale][key]) {
 				return locales.en[key];
 			}
-			return locales[locale][key];
+			return locales[_locale][key];
 		},
 		resetSettings: function(){
 			if (confirm('This deletes all tours and settings for CacheTour and cannot be undone! Are you sure about that?')) {
@@ -571,6 +572,7 @@ var console = unsafeWindow.console; //for greasemonkey
 			return Promise.all(attrib_promises);
 		}.bind(this)).then(function(attributes) {
 			var data = this.toJSON();
+			data.type = CacheTour.l10n('cachetype_' + data.type, 'en');
 			data.logs = logs.join('\n');
 			data.attributes = attributes.join('\n');
 			data.short_description = CacheTour.escapeHTML(this.short_description);
@@ -816,7 +818,7 @@ var console = unsafeWindow.console; //for greasemonkey
 				date: this.date,
 				type: this.type,
 				finder: CacheTour.escapeHTML(this.finder),
-				text: this.text
+				text: this.text.replace(/&nbsp;/ig,'&amp;nbsp;')
 			}));
 		}.bind(this));
 	};
@@ -875,8 +877,8 @@ var console = unsafeWindow.console; //for greasemonkey
 	"use strict";
 
 	var template_gpx =
-	'<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n' +
-	'<gpx xmlns:xsi="http://www.w3.org/2001/xmlschema-instance" xmlns:xsd="http://www.w3.org/2001/xmlschema" version="1.0" creator="cachetour" xsi:schemalocation="http://www.topografix.com/gpx/1/0 http://www.topografix.com/gpx/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd" xmlns="http://www.topografix.com/gpx/1/0">\n' +
+	"<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\n" +
+	'<gpx version="1.0" creator="CacheTour" xsi:schemaLocation="http://www.topografix.com/GPX/1/0 http://www.topografix.com/GPX/1/0/gpx.xsd http://www.groundspeak.com/cache/1/0/1 http://www.groundspeak.com/cache/1/0/1/cache.xsd http://www.gsak.net/xmlv1/6 http://www.gsak.net/xmlv1/6/gsak.xsd" xmlns="http://www.topografix.com/GPX/1/0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:groundspeak="http://www.groundspeak.com/cache/1/0/1" xmlns:gsak="http://www.gsak.net/xmlv1/6" xmlns:cgeo="http://www.cgeo.org/wptext/1/0">\n' +
 		'<name><% name %></name>\n' +
 		'<desc><% description %></desc>\n' +
 		'<author>CacheTour</author>\n' +

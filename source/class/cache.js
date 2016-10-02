@@ -259,6 +259,7 @@
 			return Promise.all(attrib_promises);
 		}.bind(this)).then(function(attributes) {
 			var data = this.toJSON();
+			data.type = CacheTour.l10n('cachetype_' + data.type, 'en');
 			data.logs = logs.join('\n');
 			data.attributes = attributes.join('\n');
 			data.short_description = CacheTour.escapeHTML(this.short_description);

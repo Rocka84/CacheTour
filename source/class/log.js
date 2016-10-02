@@ -59,7 +59,7 @@
 				date: this.date,
 				type: this.type,
 				finder: CacheTour.escapeHTML(this.finder),
-				text: this.text
+				text: this.text.replace(/&nbsp;/ig,'&amp;nbsp;')
 			}));
 		}.bind(this));
 	};
